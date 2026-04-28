@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Painel do dono — Academia MVP</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: #f1f3f6;
+      }
+      .topbar {
+        border-bottom: 1px solid #e2e6ea;
+      }
+      .app-sidebar {
+        min-height: calc(100vh - 74px);
+        border-right: 1px solid #e2e6ea;
+      }
+      .app-title {
+        font-weight: 600;
+      }
+      .sidebar-btn.active {
+        background: #e8f1ff;
+        color: #0d6efd;
+        border-color: #d3e2ff;
+      }
+      .sidebar-btn {
+        border-radius: 10px;
+      }
+      .metric-card {
+        border: 0;
+        border-radius: 12px;
+      }
+      .metric-icon {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1rem;
+      }
+      .table-card,
+      .section-card {
+        border: 0;
+        border-radius: 12px;
+      }
+      .status-pill {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 999px;
+      }
+      .status-active {
+        background: #e7f7ef;
+        color: #1d7a4b;
+      }
+      .status-pending {
+        background: #fff7df;
+        color: #8a6b14;
+      }
+      /* Tabelas do painel Owner — estilo único (Alunos, Check-ins, etc.) */
+      .owner-panel-table thead th {
+        font-size: 0.82rem;
+        color: #444;
+        background: #f8f9fb;
+        border-bottom-width: 1px;
+      }
+      .owner-panel-table tbody td {
+        vertical-align: middle;
+      }
+      .owner-panel-table th:first-child,
+      .owner-panel-table td:first-child {
+        padding-left: 32px;
+      }
+
+      /* Lista de Treinos — respiro visual semelhante às tabelas */
+      #workoutsList .list-group-item {
+        padding-left: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar bg-white topbar">
+      <div class="container-fluid px-3 px-lg-4">
+        <span class="navbar-brand mb-0 app-title">Academia Força Total</span>
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-secondary small" id="who"></span>
+          <button type="button" class="btn btn-danger btn-sm" id="btnLogout">
+            <i class="bi bi-box-arrow-right me-1"></i>Sair
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-0">
+      <div id="alert" class="alert alert-danger d-none" role="alert" aria-live="polite"></div>
+      <div class="row g-0">
+        <aside class="col-12 col-lg-3 col-xl-2 bg-white app-sidebar p-3 p-lg-4">
+          <div class="mb-4">
+            <h6 class="mb-1 fw-semibold">Painel Owner</h6>
+            <p class="text-secondary small mb-0">Gerenciamento completo</p>
+          </div>
+          <div class="d-grid gap-2">
+            <div class="card border-0">
+              <div class="card-body p-0 d-grid gap-2">
+              <button class="btn btn-outline-primary text-start sidebar-btn active" data-section="dashboard">
+                <i class="bi bi-grid-1x2 me-2"></i>Dashboard
+              </button>
+              <button class="btn btn-outline-primary text-start sidebar-btn" data-section="members">
+                <i class="bi bi-people me-2"></i>Alunos
+              </button>
+              <button class="btn btn-outline-primary text-start sidebar-btn" data-section="workouts">
+                <i class="bi bi-activity me-2"></i>Treinos
+              </button>
+              <button class="btn btn-outline-primary text-start sidebar-btn" data-section="checkins">
+                <i class="bi bi-clock-history me-2"></i>Check-ins
+              </button>
+            </div>
+          </div>
+          </div>
+        </aside>
+
+        <main class="col-12 col-lg-9 col-xl-10 p-3 p-lg-4">
+          <section id="section-dashboard" class="content-section">
+            <h2 class="h4 mb-3">Dashboard</h2>
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <div class="card shadow-sm metric-card">
+                  <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                    <div class="text-secondary small">Total de alunos</div>
+                      <div class="h2 mb-0" id="metricMembers">0</div>
+                      <button type="button" class="btn btn-sm btn-link px-0 text-decoration-none mt-1" id="goMembers">
+                        Gerenciar alunos
+                      </button>
+                    </div>
+                    <span class="metric-icon bg-primary-subtle text-primary"><i class="bi bi-people"></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card shadow-sm metric-card">
+                  <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                    <div class="text-secondary small">Pendentes de aprovação</div>
+                      <div class="h2 mb-0" id="metricPending">0</div>
+                      <button type="button" class="btn btn-sm btn-link px-0 text-decoration-none mt-1" id="goMembersPending">
+                        Ver pendentes
+                      </button>
+                    </div>
+                    <span class="metric-icon bg-warning-subtle text-warning"><i class="bi bi-person-exclamation"></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card shadow-sm metric-card">
+                  <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="text-secondary small">Check-ins hoje</div>
+                      <div class="h2 mb-0" id="metricCheckins">0</div>
+                      <button type="button" class="btn btn-sm btn-link px-0 text-decoration-none mt-1" id="goCheckins">
+                        Abrir check-ins
+                      </button>
+                    </div>
+                    <span class="metric-icon bg-success-subtle text-success"><i class="bi bi-clock-history"></i></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-light border mb-0">
+              Use o menu lateral para gerenciar alunos, treinos e check-ins.
+            </div>
+            <div class="mt-3">
+              <button type="button" class="btn btn-outline-primary btn-sm me-2" id="goWorkouts">
+                <i class="bi bi-activity me-1"></i>Ir para treinos
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshDashboard">
+                <i class="bi bi-arrow-repeat me-1"></i>Atualizar métricas
+              </button>
+            </div>
+          </section>
+
+          <section id="section-members" class="content-section d-none">
+            <h2 class="h4">Gerenciar Alunos</h2>
+            <p class="text-secondary small">
+              Aprove novos cadastros. Somente alunos aprovados conseguem ver treinos e fazer check-in.
+            </p>
+            <div class="table-responsive card shadow-sm table-card">
+              <table class="table table-striped mb-0 owner-panel-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>E-mail</th>
+                    <th>Conta</th>
+                    <th>Associação</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="membersBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="section-workouts" class="content-section d-none">
+            <h2 class="h4 mb-3">Gerenciar Treinos</h2>
+            <div class="card shadow-sm section-card mb-3">
+              <div class="card-body">
+                <div class="row g-3 align-items-end">
+                  <div class="col-md-6">
+                    <label class="form-label" for="memberSelect">Selecionar aluno</label>
+                    <select class="form-select" id="memberSelect"></select>
+                  </div>
+                  <div class="col-md-6">
+                    <button type="button" class="btn btn-outline-primary" id="btnLoadWorkouts">
+                      Carregar treinos
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card shadow-sm section-card mb-3">
+              <div class="card-body">
+                <h3 class="h6">Novo treino (texto livre)</h3>
+                <div class="mb-2">
+                  <input class="form-control" id="wTitle" placeholder="Título opcional" />
+                </div>
+                <div class="mb-2">
+                  <textarea class="form-control" id="wContent" rows="4" placeholder="Plano do treino…"></textarea>
+                </div>
+                <button type="button" class="btn btn-success" id="btnAddWorkout">Adicionar treino</button>
+              </div>
+            </div>
+            <ul class="list-group shadow-sm" id="workoutsList"></ul>
+          </section>
+
+          <section id="section-checkins" class="content-section d-none">
+            <h2 class="h4 mb-3">Gerenciar Check-ins</h2>
+            <div class="card shadow-sm section-card mb-3">
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-5">
+                    <label class="form-label mb-1" for="checkinMemberFilter">Filtrar por aluno</label>
+                    <select class="form-select form-select-sm" id="checkinMemberFilter">
+                      <option value="">Todos os alunos</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive card shadow-sm table-card">
+              <table class="table table-sm mb-0 owner-panel-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Aluno</th>
+                    <th>E-mail</th>
+                    <th>Treino</th>
+                    <th>Chegada</th>
+                    <th>Saída</th>
+                  </tr>
+                </thead>
+                <tbody id="checkinsBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Editar treino</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editId" />
+            <div class="mb-2">
+              <label class="form-label" for="editTitle">Título</label>
+              <input class="form-control" id="editTitle" />
+            </div>
+            <div class="mb-2">
+              <label class="form-label" for="editContent">Conteúdo</label>
+              <textarea class="form-control" id="editContent" rows="5"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnSaveEdit">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script>
+      const alertEl = document.getElementById('alert');
+      const membersBody = document.getElementById('membersBody');
+      const memberSelect = document.getElementById('memberSelect');
+      const checkinMemberFilter = document.getElementById('checkinMemberFilter');
+      const workoutsList = document.getElementById('workoutsList');
+      const checkinsBody = document.getElementById('checkinsBody');
+      const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+      function showError(msg) {
+        alertEl.textContent = msg;
+        alertEl.classList.remove('d-none');
+      }
+
+      function switchSection(section) {
+        document.querySelectorAll('.content-section').forEach((el) => {
+          el.classList.toggle('d-none', el.id !== 'section-' + section);
+        });
+        document.querySelectorAll('.sidebar-btn').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.section === section);
+        });
+      }
+
+      document.querySelectorAll('.sidebar-btn').forEach((btn) => {
+        btn.addEventListener('click', () => switchSection(btn.dataset.section));
+      });
+      document.getElementById('goMembers').addEventListener('click', () => switchSection('members'));
+      document.getElementById('goMembersPending').addEventListener('click', () => switchSection('members'));
+      document.getElementById('goCheckins').addEventListener('click', () => switchSection('checkins'));
+      document.getElementById('goWorkouts').addEventListener('click', () => switchSection('workouts'));
+      document.getElementById('refreshDashboard').addEventListener('click', async () => {
+        const btn = document.getElementById('refreshDashboard');
+        alertEl.classList.add('d-none');
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Atualizando...';
+        try {
+          await loadMembers();
+          await loadCheckins();
+        } catch (e) {
+          showError(e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+
+      async function gate() {
+        try {
+          const me = await getMe();
+          if (me.user.role !== 'owner') {
+            window.location.href = 'member.html';
+            return null;
+          }
+          document.getElementById('who').textContent =
+            (me.user.gym && me.user.gym.name ? me.user.gym.name + ' · ' : '') + me.user.email;
+          return me;
+        } catch {
+          window.location.href = 'login.html';
+          return null;
+        }
+      }
+
+      async function loadMembers() {
+        const data = await apiJson('/owner/members');
+        membersBody.innerHTML = '';
+        const opts = '<option value="">Selecione um aluno…</option>';
+        let optionsHtml = opts;
+        const filterBase = '<option value="">Todos</option>';
+        const totalColsMembers = 5;
+
+        for (const m of data.members) {
+          const tr = document.createElement('tr');
+          const accountBadge =
+            m.status === 'active'
+              ? '<span class="status-pill status-active">Ativo</span>'
+              : '<span class="status-pill status-pending">Pendente</span>';
+          const membershipBadge =
+            m.membership_status === 'active'
+              ? '<span class="status-pill status-active">Aprovado</span>'
+              : '<span class="status-pill status-pending">Pendente</span>';
+          const approveBtn =
+            m.membership_status === 'pending'
+              ? `<button class="btn btn-sm btn-success" data-approve="${m.id}">Aprovar</button>`
+              : '';
+          tr.innerHTML = `
+            <td>${m.id}</td>
+            <td>${escapeHtml(m.email)}</td>
+            <td>${accountBadge}</td>
+            <td>${membershipBadge}</td>
+            <td>${approveBtn}</td>`;
+          membersBody.appendChild(tr);
+          optionsHtml += `<option value="${m.id}">${escapeHtml(m.email)} (#${m.id})</option>`;
+        }
+
+        memberSelect.innerHTML = optionsHtml;
+        checkinMemberFilter.innerHTML =
+          '<option value="">Todos os alunos</option>' +
+          data.members.map((m) => `<option value="${m.id}">${escapeHtml(m.email)}</option>`).join('');
+        document.getElementById('metricMembers').textContent = data.members.length;
+        document.getElementById('metricPending').textContent = data.members.filter((m) => m.membership_status === 'pending').length;
+        if (!data.members.length) {
+          membersBody.innerHTML = `<tr><td colspan="${totalColsMembers}" class="text-center text-secondary py-4">Nenhum aluno cadastrado ainda.</td></tr>`;
+        }
+
+        membersBody.querySelectorAll('[data-approve]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-approve');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML =
+              '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Aprovando...';
+            try {
+              await apiJson('/owner/members/' + id + '/approve', { method: 'POST' });
+              await loadMembers();
+              await loadCheckins();
+            } catch (e) {
+              showError(e.message);
+            } finally {
+              if (btn.isConnected) {
+                btn.disabled = false;
+                btn.innerHTML = original;
+              }
+            }
+          });
+        });
+      }
+
+      async function loadWorkouts() {
+        const mid = parseInt(memberSelect.value, 10);
+        if (!mid) {
+          showError('Selecione um aluno.');
+          return;
+        }
+        alertEl.classList.add('d-none');
+        const data = await apiJson('/owner/workouts?member_id=' + encodeURIComponent(mid));
+        workoutsList.innerHTML = '';
+        if (!data.workouts.length) {
+          workoutsList.innerHTML = '<li class="list-group-item text-center text-secondary py-4">Nenhum treino cadastrado para este aluno.</li>';
+          return;
+        }
+        for (const w of data.workouts) {
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-start gap-2 py-3';
+          li.innerHTML = `
+            <div class="me-auto">
+              <div class="fw-semibold">${w.title ? escapeHtml(w.title) : 'Treino #' + w.id}</div>
+              <div class="small text-secondary">${escapeHtml(w.content).replace(/\n/g, '<br>')}</div>
+            </div>
+            <div class="btn-group btn-group-sm">
+              <button type="button" class="btn btn-outline-primary" data-edit="${w.id}">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+              <button type="button" class="btn btn-outline-danger" data-del="${w.id}">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>`;
+          workoutsList.appendChild(li);
+        }
+
+        workoutsList.querySelectorAll('[data-edit]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const id = b.getAttribute('data-edit');
+            const w = data.workouts.find((x) => String(x.id) === String(id));
+            if (!w) {
+              showError('Treino não encontrado. Recarregue a lista.');
+              return;
+            }
+            document.getElementById('editId').value = w.id;
+            document.getElementById('editTitle').value = w.title || '';
+            document.getElementById('editContent').value = w.content || '';
+            editModal.show();
+          });
+        });
+        workoutsList.querySelectorAll('[data-del]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            if (!confirm('Excluir este treino?')) return;
+            const id = b.getAttribute('data-del');
+            const original = b.innerHTML;
+            b.disabled = true;
+            b.innerHTML =
+              '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Excluindo...';
+            try {
+              await apiJson('/owner/workouts/' + id, { method: 'DELETE' });
+              await loadWorkouts();
+            } catch (e) {
+              showError(e.message);
+            } finally {
+              if (b.isConnected) {
+                b.disabled = false;
+                b.innerHTML = original;
+              }
+            }
+          });
+        });
+      }
+
+      let checkinsLoading = false;
+      async function loadCheckins() {
+        if (checkinsLoading) return;
+        checkinsLoading = true;
+        checkinMemberFilter.disabled = true;
+        const mid = checkinMemberFilter.value;
+        try {
+          const q = mid ? '?member_id=' + encodeURIComponent(mid) : '';
+          const data = await apiJson('/owner/checkins' + q);
+          const today = new Date().toISOString().slice(0, 10);
+          document.getElementById('metricCheckins').textContent = data.checkins.filter((c) => String(c.checked_in_at || '').startsWith(today)).length;
+          if (!data.checkins.length) {
+            checkinsBody.innerHTML = '<tr><td colspan="6" class="text-center text-secondary py-4">Nenhum check-in encontrado.</td></tr>';
+            return;
+          }
+          checkinsBody.innerHTML = data.checkins
+            .map((c) => {
+              const memberDisplay = friendlyMemberName(c.member_email, c.member_user_id);
+              return `<tr>
+                  <td class="fw-semibold">${c.id}</td>
+                  <td>${escapeHtml(memberDisplay.name)}</td>
+                  <td>${escapeHtml(c.member_email || '')}</td>
+                  <td>${escapeHtml(c.workout_title || '-')}</td>
+                  <td>${escapeHtml(formatDateTimeLine(c.checked_in_at))}</td>
+                  <td>${
+                    c.checked_out_at
+                      ? escapeHtml(formatDateTimeLine(c.checked_out_at))
+                      : '<span class="status-pill status-pending">Em aberto</span>'
+                  }</td>
+                </tr>`;
+            })
+            .join('');
+        } finally {
+          checkinMemberFilter.disabled = false;
+          checkinsLoading = false;
+        }
+      }
+
+      function friendlyMemberName(email, userId) {
+        const fallback = { name: 'Aluno', id: String(userId ?? '') };
+        if (!email) return fallback;
+        const local = String(email).split('@')[0] || '';
+        if (!local) return fallback;
+        const cleaned = local.replace(/[._-]+/g, ' ').trim();
+        if (!cleaned) return fallback;
+        const normalized = cleaned
+          .split(' ')
+          .filter(Boolean)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ');
+        return { name: normalized || 'Aluno', id: String(userId ?? '') };
+      }
+
+      function formatDateTimeLine(value) {
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) {
+          return String(value || '');
+        }
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mi = String(d.getMinutes()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      document.getElementById('btnLogout').addEventListener('click', () => logout());
+      document.getElementById('btnLoadWorkouts').addEventListener('click', async () => {
+        const btn = document.getElementById('btnLoadWorkouts');
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Carregando...';
+        try {
+          await loadWorkouts();
+        } catch (e) {
+          showError(e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+      document.getElementById('checkinMemberFilter').addEventListener('change', () => {
+        loadCheckins().catch((e) => showError(e.message));
+      });
+      document.getElementById('btnAddWorkout').addEventListener('click', async () => {
+        const btn = document.getElementById('btnAddWorkout');
+        const original = btn.innerHTML;
+        alertEl.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Adicionando...';
+        const mid = parseInt(memberSelect.value, 10);
+        if (!mid) {
+          showError('Selecione um aluno.');
+          btn.disabled = false;
+          btn.innerHTML = original;
+          return;
+        }
+        const title = document.getElementById('wTitle').value.trim();
+        const content = document.getElementById('wContent').value.trim();
+        if (!content) {
+          showError('Preencha o conteúdo do treino.');
+          btn.disabled = false;
+          btn.innerHTML = original;
+          return;
+        }
+        try {
+          await apiJson('/owner/workouts', {
+            method: 'POST',
+            body: { member_user_id: mid, title, content },
+          });
+          document.getElementById('wTitle').value = '';
+          document.getElementById('wContent').value = '';
+          await loadWorkouts();
+        } catch (e) {
+          showError(e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+
+      document.getElementById('btnSaveEdit').addEventListener('click', async () => {
+        const btn = document.getElementById('btnSaveEdit');
+        const original = btn.innerHTML;
+        alertEl.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Salvando...';
+        const id = document.getElementById('editId').value;
+        const title = document.getElementById('editTitle').value.trim();
+        const content = document.getElementById('editContent').value.trim();
+        try {
+          await apiJson('/owner/workouts/' + id, {
+            method: 'PATCH',
+            body: { title, content },
+          });
+          editModal.hide();
+          await loadWorkouts();
+        } catch (e) {
+          showError(e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+
+      (async function init() {
+        const me = await gate();
+        if (!me) return;
+        switchSection('dashboard');
+        try {
+          await loadMembers();
+          await loadCheckins();
+        } catch (e) {
+          showError(e.message);
+        }
+      })();
+    </script>
+  </body>
+</html>
