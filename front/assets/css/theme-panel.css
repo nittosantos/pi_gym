@@ -1,0 +1,286 @@
+/* Painéis owner / member — paleta Ge Ribeiro + Next Wave + tema claro/escuro (data-bs-theme) */
+
+:root,
+html[data-bs-theme="light"] {
+  color-scheme: light;
+  --gr-accent: #a4d434;
+  --gr-accent-hover: #c4d948;
+  --nw-purple: #8b5cf6;
+  --nw-purple-deep: #6d28d9;
+  --nw-teal: #0f766e;
+  --bs-primary: #a4d434;
+  --bs-primary-rgb: 164, 212, 52;
+
+  --panel-bg: #f0f2f6;
+  --panel-surface: #ffffff;
+  --panel-sidebar-bg: #ffffff;
+  --panel-topbar-bg: #ffffff;
+  --panel-border: #e2e8f0;
+  --panel-text: #1e293b;
+  --panel-text-muted: #64748b;
+  --panel-heading: #0f172a;
+}
+
+html[data-bs-theme="dark"] {
+  color-scheme: dark;
+  --panel-bg: #0c0e14;
+  --panel-surface: #161b26;
+  --panel-sidebar-bg: #121821;
+  --panel-topbar-bg: #121821;
+  --panel-border: rgba(148, 163, 184, 0.18);
+  --panel-text: #e8eaef;
+  --panel-text-muted: #94a3b8;
+  --panel-heading: #f1f5f9;
+}
+
+body.panel-shell {
+  background: var(--panel-bg);
+  color: var(--panel-text);
+}
+
+.panel-shell .navbar.panel-navbar {
+  background-color: var(--panel-topbar-bg) !important;
+}
+
+.panel-shell .navbar-brand {
+  color: var(--panel-text) !important;
+}
+
+.panel-shell .topbar {
+  border-bottom: 1px solid var(--panel-border);
+  box-shadow: 0 1px 0 rgba(139, 92, 246, 0.06);
+}
+
+html[data-bs-theme="dark"] .panel-shell .topbar {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.panel-shell .navbar-brand img {
+  height: 36px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.panel-shell .navbar-brand .app-title {
+  font-weight: 600;
+}
+
+@media (min-width: 576px) {
+  .panel-shell .navbar-brand img {
+    height: 40px;
+  }
+}
+
+.panel-shell .app-sidebar {
+  background-color: var(--panel-sidebar-bg) !important;
+  border-right: 1px solid var(--panel-border);
+}
+
+/* Card que envolve os botões da sidebar: transparente para o gap entre botões
+   herdar o mesmo fundo da barra lateral (no dark o --bs-card-bg do BS diferia da sidebar). */
+.panel-shell .app-sidebar .card {
+  --bs-card-bg: transparent;
+  background-color: transparent;
+}
+
+.panel-shell .app-sidebar .card-body {
+  background-color: transparent;
+}
+
+.panel-shell .app-sidebar h6,
+.panel-shell main h2,
+.panel-shell main h3 {
+  color: var(--panel-heading);
+}
+
+.panel-shell main .text-secondary,
+.panel-shell .app-sidebar .text-secondary {
+  color: var(--panel-text-muted) !important;
+}
+
+.panel-shell .sidebar-btn {
+  border-radius: 10px;
+}
+
+/* Item ativo — mistura roxo + verde */
+.panel-shell .sidebar-btn.active {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.12) 0%,
+    rgba(164, 212, 52, 0.16) 100%
+  );
+  color: var(--nw-purple-deep);
+  border-color: rgba(139, 92, 246, 0.42);
+}
+
+html[data-bs-theme="dark"] .panel-shell .sidebar-btn.active {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.22) 0%,
+    rgba(164, 212, 52, 0.14) 100%
+  );
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.45);
+}
+
+.panel-shell .btn-outline-primary {
+  --bs-btn-color: var(--nw-purple-deep);
+  --bs-btn-border-color: rgba(109, 40, 217, 0.38);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--nw-purple);
+  --bs-btn-hover-border-color: var(--nw-purple);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--nw-purple-deep);
+  --bs-btn-active-border-color: var(--nw-purple-deep);
+  --bs-btn-disabled-color: rgba(109, 40, 217, 0.45);
+  --bs-btn-disabled-border-color: rgba(109, 40, 217, 0.25);
+}
+
+html[data-bs-theme="dark"] .panel-shell .btn-outline-primary {
+  --bs-btn-color: #c4b5fd;
+  --bs-btn-border-color: rgba(167, 139, 250, 0.45);
+}
+
+.panel-shell .btn-primary {
+  --bs-btn-color: #141414;
+  --bs-btn-bg: var(--gr-accent);
+  --bs-btn-border-color: var(--gr-accent);
+  --bs-btn-hover-color: #141414;
+  --bs-btn-hover-bg: var(--gr-accent-hover);
+  --bs-btn-hover-border-color: var(--gr-accent-hover);
+  --bs-btn-active-color: #141414;
+  --bs-btn-active-bg: var(--gr-accent-hover);
+  --bs-btn-active-border-color: var(--gr-accent-hover);
+  --bs-btn-disabled-color: rgba(20, 20, 20, 0.55);
+  --bs-btn-disabled-bg: rgba(164, 212, 52, 0.65);
+  --bs-btn-disabled-border-color: rgba(164, 212, 52, 0.5);
+  --bs-btn-focus-shadow-rgb: 164, 212, 52;
+}
+
+.panel-shell .bg-primary-subtle {
+  background-color: rgba(139, 92, 246, 0.11) !important;
+}
+
+html[data-bs-theme="dark"] .panel-shell .bg-primary-subtle {
+  background-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+.panel-shell .text-primary {
+  color: var(--nw-purple-deep) !important;
+}
+
+html[data-bs-theme="dark"] .panel-shell .text-primary {
+  color: #c4b5fd !important;
+}
+
+.panel-shell .btn-link {
+  --bs-btn-color: var(--nw-purple-deep);
+  --bs-btn-hover-color: var(--nw-purple);
+}
+
+html[data-bs-theme="dark"] .panel-shell .btn-link {
+  --bs-btn-color: #c4b5fd;
+  --bs-btn-hover-color: #e9d5ff;
+}
+
+.panel-shell a.link-primary {
+  color: var(--nw-purple-deep) !important;
+}
+
+.panel-shell a.link-primary:hover {
+  color: var(--nw-purple) !important;
+}
+
+html[data-bs-theme="dark"] .panel-shell a.link-primary {
+  color: #c4b5fd !important;
+}
+
+.panel-shell .help-card {
+  border: 0;
+  border-left: 4px solid var(--nw-purple);
+  border-radius: 10px;
+}
+
+.panel-shell .workout-head {
+  background: linear-gradient(90deg, var(--nw-purple-deep) 0%, var(--nw-teal) 100%);
+  color: #fff;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  font-weight: 600;
+}
+
+.panel-shell .owner-panel-table thead th {
+  font-size: 0.82rem;
+  color: #475569;
+  background: linear-gradient(180deg, #fafafa 0%, #f5f3ff 100%);
+  border-bottom-width: 1px;
+}
+
+html[data-bs-theme="dark"] .panel-shell .owner-panel-table thead th {
+  color: var(--panel-text-muted);
+  background: linear-gradient(180deg, #1a2230 0%, #1e1635 100%);
+  border-color: var(--panel-border);
+}
+
+.panel-shell .owner-panel-table tbody td {
+  vertical-align: middle;
+}
+
+.panel-shell .owner-panel-table th:first-child,
+.panel-shell .owner-panel-table td:first-child {
+  padding-left: 32px;
+}
+
+/* Pills de status — tema */
+.panel-shell .status-active {
+  background: #e7f7ef;
+  color: #1d7a4b;
+}
+
+.panel-shell .status-pending {
+  background: #fff7df;
+  color: #8a6b14;
+}
+
+html[data-bs-theme="dark"] .panel-shell .status-active {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+}
+
+html[data-bs-theme="dark"] .panel-shell .status-pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fcd34d;
+}
+
+/* Área do aluno — histórico / cards */
+html[data-bs-theme="dark"] .panel-shell .history-item {
+  border-color: var(--panel-border) !important;
+}
+
+html[data-bs-theme="dark"] .panel-shell .history-dot {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #6ee7b7 !important;
+}
+
+html[data-bs-theme="dark"] .panel-shell .status-done {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #6ee7b7 !important;
+}
+
+html[data-bs-theme="dark"] .panel-shell .status-open {
+  background: rgba(251, 191, 36, 0.12) !important;
+  color: #fcd34d !important;
+}
+
+/* Botão tema — contraste nos dois modos */
+.panel-shell #panelThemeToggle.btn-outline-secondary {
+  --bs-btn-color: var(--panel-text-muted);
+  --bs-btn-border-color: var(--panel-border);
+  --bs-btn-hover-bg: rgba(139, 92, 246, 0.12);
+  --bs-btn-hover-border-color: rgba(139, 92, 246, 0.35);
+  --bs-btn-hover-color: var(--panel-text);
+}
+
+html[data-bs-theme="dark"] .panel-shell #panelThemeToggle.btn-outline-secondary {
+  --bs-btn-hover-bg: rgba(139, 92, 246, 0.2);
+}
