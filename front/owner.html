@@ -69,7 +69,11 @@
           <span class="app-title">Academia Ge Ribeiro</span>
         </a>
         <div class="d-flex align-items-center gap-2">
-          <span class="text-secondary small" id="who"></span>
+          <span class="small d-inline-flex align-items-center gap-1 flex-wrap text-secondary" id="whoLine">
+            <span id="whoGym" class="panel-gym-name fw-semibold d-none"></span>
+            <span id="whoSep" class="d-none" aria-hidden="true">·</span>
+            <span id="whoEmail"></span>
+          </span>
           <button
             type="button"
             class="btn btn-outline-secondary btn-sm panel-theme-toggle"
@@ -177,7 +181,8 @@
           <section id="section-members" class="content-section d-none">
             <h2 class="h4">Gerenciar Alunos</h2>
             <p class="text-secondary small">
-              Aprove novos cadastros. Somente alunos aprovados conseguem ver treinos e fazer check-in.
+              Aprove novos cadastros. Alunos suspensos ficam só em modo consulta (treinos e histórico) até você
+              reativar.
             </p>
             <div class="table-responsive card shadow-sm table-card">
               <table class="table table-striped mb-0 owner-panel-table">
@@ -323,6 +328,35 @@
       </div>
     </div>
 
+    <div class="modal fade" id="suspendModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Suspender aluno</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="suspendMemberId" value="" />
+            <p class="small text-secondary mb-3">
+              O aluno continua podendo entrar no portal apenas para consultar treinos e histórico. Registro de
+              treino fica bloqueado até a reativação.
+            </p>
+            <label class="form-label" for="suspendReason">Motivo</label>
+            <select class="form-select" id="suspendReason">
+              <option value="inadimplencia">Inadimplência</option>
+              <option value="pausa_plano">Pausa / congelamento de plano</option>
+              <option value="solicitacao_academia">A pedido da academia</option>
+              <option value="outros">Outros (orientar na recepção)</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-warning" id="btnConfirmSuspend">Suspender</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/panel-theme.js"></script>
     <script src="assets/js/api.js"></script>
@@ -334,6 +368,7 @@
       const workoutsList = document.getElementById('workoutsList');
       const checkinsBody = document.getElementById('checkinsBody');
       const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+      const suspendModal = new bootstrap.Modal(document.getElementById('suspendModal'));
 
       function showError(msg) {
         alertEl.textContent = msg;
@@ -374,6 +409,23 @@
         }
       });
 
+      function setWhoBar(me) {
+        const gymEl = document.getElementById('whoGym');
+        const sepEl = document.getElementById('whoSep');
+        const emailEl = document.getElementById('whoEmail');
+        const name = me.user.gym && me.user.gym.name ? me.user.gym.name : '';
+        emailEl.textContent = me.user.email;
+        if (name) {
+          gymEl.textContent = name;
+          gymEl.classList.remove('d-none');
+          sepEl.classList.remove('d-none');
+        } else {
+          gymEl.textContent = '';
+          gymEl.classList.add('d-none');
+          sepEl.classList.add('d-none');
+        }
+      }
+
       async function gate() {
         try {
           const me = await getMe();
@@ -381,8 +433,7 @@
             window.location.href = 'member.html';
             return null;
           }
-          document.getElementById('who').textContent =
-            (me.user.gym && me.user.gym.name ? me.user.gym.name + ' · ' : '') + me.user.email;
+          setWhoBar(me);
           return me;
         } catch {
           window.location.href = 'login.html';
@@ -395,7 +446,6 @@
         membersBody.innerHTML = '';
         const opts = '<option value="">Selecione um aluno…</option>';
         let optionsHtml = opts;
-        const filterBase = '<option value="">Todos</option>';
         const totalColsMembers = 5;
 
         for (const m of data.members) {
@@ -404,20 +454,28 @@
             m.status === 'active'
               ? '<span class="status-pill status-active">Ativo</span>'
               : '<span class="status-pill status-pending">Pendente</span>';
-          const membershipBadge =
-            m.membership_status === 'active'
-              ? '<span class="status-pill status-active">Aprovado</span>'
-              : '<span class="status-pill status-pending">Pendente</span>';
-          const approveBtn =
-            m.membership_status === 'pending'
-              ? `<button class="btn btn-sm btn-success" data-approve="${m.id}">Aprovar</button>`
-              : '';
+          let membershipBadge = '';
+          if (m.membership_status === 'active') {
+            membershipBadge = '<span class="status-pill status-active">Ativo</span>';
+          } else if (m.membership_status === 'suspended') {
+            membershipBadge = '<span class="status-pill status-suspended">Suspenso</span>';
+          } else {
+            membershipBadge = '<span class="status-pill status-pending">Pendente</span>';
+          }
+          let actionCell = '';
+          if (m.membership_status === 'pending') {
+            actionCell = `<button type="button" class="btn btn-sm btn-success" data-approve="${m.id}">Aprovar</button>`;
+          } else if (m.membership_status === 'active') {
+            actionCell = `<button type="button" class="btn btn-sm btn-outline-warning" data-suspend="${m.id}">Suspender</button>`;
+          } else if (m.membership_status === 'suspended') {
+            actionCell = `<button type="button" class="btn btn-sm btn-success" data-reactivate="${m.id}">Reativar</button>`;
+          }
           tr.innerHTML = `
             <td>${m.id}</td>
             <td>${escapeHtml(m.email)}</td>
             <td>${accountBadge}</td>
             <td>${membershipBadge}</td>
-            <td>${approveBtn}</td>`;
+            <td>${actionCell}</td>`;
           membersBody.appendChild(tr);
           optionsHtml += `<option value="${m.id}">${escapeHtml(m.email)} (#${m.id})</option>`;
         }
@@ -441,6 +499,36 @@
               '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Aprovando...';
             try {
               await apiJson('/owner/members/' + id + '/approve', { method: 'POST' });
+              await loadMembers();
+              await loadCheckins();
+            } catch (e) {
+              showError(e.message);
+            } finally {
+              if (btn.isConnected) {
+                btn.disabled = false;
+                btn.innerHTML = original;
+              }
+            }
+          });
+        });
+
+        membersBody.querySelectorAll('[data-suspend]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            document.getElementById('suspendMemberId').value = btn.getAttribute('data-suspend');
+            document.getElementById('suspendReason').value = 'inadimplencia';
+            suspendModal.show();
+          });
+        });
+
+        membersBody.querySelectorAll('[data-reactivate]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-reactivate');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML =
+              '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Reativando...';
+            try {
+              await apiJson('/owner/members/' + id + '/reactivate', { method: 'POST' });
               await loadMembers();
               await loadCheckins();
             } catch (e) {
@@ -599,6 +687,31 @@
       }
 
       document.getElementById('btnLogout').addEventListener('click', () => logout());
+
+      document.getElementById('btnConfirmSuspend').addEventListener('click', async () => {
+        const id = document.getElementById('suspendMemberId').value;
+        const reason = document.getElementById('suspendReason').value;
+        const btn = document.getElementById('btnConfirmSuspend');
+        const original = btn.innerHTML;
+        alertEl.classList.add('d-none');
+        btn.disabled = true;
+        btn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Processando...';
+        try {
+          await apiJson('/owner/members/' + id + '/suspend', {
+            method: 'POST',
+            body: { reason },
+          });
+          suspendModal.hide();
+          await loadMembers();
+          await loadCheckins();
+        } catch (e) {
+          showError(e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
       document.getElementById('btnLoadWorkouts').addEventListener('click', async () => {
         const btn = document.getElementById('btnLoadWorkouts');
         const original = btn.innerHTML;

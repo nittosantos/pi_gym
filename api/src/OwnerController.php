@@ -17,7 +17,7 @@ final class OwnerController
         $gymId = $ctx['gym_id'];
 
         $stmt = Database::pdo()->prepare(
-            'SELECT u.id, u.email, u.status, m.status AS membership_status, m.created_at AS requested_at
+            'SELECT u.id, u.email, u.status, m.status AS membership_status, m.suspension_reason, m.created_at AS requested_at
              FROM users u
              JOIN memberships m ON m.user_id = u.id
              WHERE m.gym_id = :gid AND u.role = :role
@@ -43,8 +43,97 @@ final class OwnerController
             Response::error('Aluno não encontrado nesta academia', 404);
         }
 
+        $chk = Database::pdo()->prepare(
+            'SELECT m.status FROM memberships m WHERE m.gym_id = :gid AND m.user_id = :uid LIMIT 1'
+        );
+        $chk->execute(['gid' => $gymId, 'uid' => $memberId]);
+        $mst = $chk->fetchColumn();
+        if ($mst !== 'pending') {
+            Response::error(
+                'Aprovação só vale para cadastro pendente. Para aluno suspenso, use Reativar.',
+                409
+            );
+        }
+
         $stmt = Database::pdo()->prepare('CALL sp_approve_member(:gid, :uid)');
         $stmt->execute(['gid' => $gymId, 'uid' => $memberId]);
+
+        Response::json(['ok' => true]);
+    }
+
+    public static function suspendMember(int $memberId): never
+    {
+        if (Request::method() !== 'POST') {
+            Response::error('Método não permitido', 405);
+        }
+        $ctx = Auth::requireOwner();
+        $gymId = $ctx['gym_id'];
+
+        if ($memberId <= 0) {
+            Response::error('ID inválido', 422);
+        }
+        if (!Auth::memberBelongsToGym($memberId, $gymId)) {
+            Response::error('Aluno não encontrado nesta academia', 404);
+        }
+
+        $body = Request::jsonBody();
+        $reasonKey = trim((string) ($body['reason'] ?? ''));
+        if ($reasonKey === '' || !MembershipSuspension::isValidKey($reasonKey)) {
+            Response::error('Informe um motivo válido para a suspensão.', 422);
+        }
+
+        $chk = Database::pdo()->prepare(
+            'SELECT m.status FROM memberships m WHERE m.gym_id = :gid AND m.user_id = :uid LIMIT 1'
+        );
+        $chk->execute(['gid' => $gymId, 'uid' => $memberId]);
+        $mst = $chk->fetchColumn();
+        if ($mst !== 'active') {
+            Response::error('Só é possível suspender alunos com associação ativa.', 409);
+        }
+
+        $upd = Database::pdo()->prepare(
+            'UPDATE memberships SET status = :st, suspension_reason = :r
+             WHERE gym_id = :gid AND user_id = :uid'
+        );
+        $upd->execute([
+            'st' => 'suspended',
+            'r' => $reasonKey,
+            'gid' => $gymId,
+            'uid' => $memberId,
+        ]);
+
+        Response::json(['ok' => true]);
+    }
+
+    public static function reactivateMember(int $memberId): never
+    {
+        if (Request::method() !== 'POST') {
+            Response::error('Método não permitido', 405);
+        }
+        $ctx = Auth::requireOwner();
+        $gymId = $ctx['gym_id'];
+
+        if ($memberId <= 0) {
+            Response::error('ID inválido', 422);
+        }
+        if (!Auth::memberBelongsToGym($memberId, $gymId)) {
+            Response::error('Aluno não encontrado nesta academia', 404);
+        }
+
+        $chk = Database::pdo()->prepare(
+            'SELECT m.status FROM memberships m WHERE m.gym_id = :gid AND m.user_id = :uid LIMIT 1'
+        );
+        $chk->execute(['gid' => $gymId, 'uid' => $memberId]);
+        $mst = $chk->fetchColumn();
+        if ($mst !== 'suspended') {
+            Response::error('Só é possível reativar alunos suspensos.', 409);
+        }
+
+        $upd = Database::pdo()->prepare(
+            'UPDATE memberships SET status = :st, suspension_reason = NULL
+             WHERE gym_id = :gid AND user_id = :uid'
+        );
+        $upd->execute(['st' => 'active', 'gid' => $gymId, 'uid' => $memberId]);
 
         Response::json(['ok' => true]);
     }

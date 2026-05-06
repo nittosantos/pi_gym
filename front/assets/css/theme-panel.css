@@ -46,6 +46,15 @@ body.panel-shell {
   color: var(--panel-text) !important;
 }
 
+/* Nome da academia no canto (vem do banco / API) — verde da marca Ge Ribeiro */
+.panel-shell .panel-gym-name {
+  color: var(--gr-accent);
+}
+
+html[data-bs-theme="dark"] .panel-shell .panel-gym-name {
+  color: var(--gr-accent-hover);
+}
+
 .panel-shell .topbar {
   border-bottom: 1px solid var(--panel-border);
   box-shadow: 0 1px 0 rgba(139, 92, 246, 0.06);
@@ -250,6 +259,16 @@ html[data-bs-theme="dark"] .panel-shell .status-active {
 html[data-bs-theme="dark"] .panel-shell .status-pending {
   background: rgba(251, 191, 36, 0.15);
   color: #fcd34d;
+}
+
+.panel-shell .status-suspended {
+  background: #fde8e8;
+  color: #b42318;
+}
+
+html[data-bs-theme="dark"] .panel-shell .status-suspended {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fecaca;
 }
 
 /* Área do aluno — histórico / cards */

@@ -6,7 +6,7 @@ Monorepo simples com **front** estático (HTML/CSS/JS + Bootstrap), **API** em P
 
 - `front/` — páginas e `assets/js/api.js` (chamadas `fetch` para `/api/...`).
 - `api/` — PHP com roteador em `api/public/index.php` (Apache + `mod_rewrite`).
-- `database/` — `init.sql` (schema + seed do dono e da academia demo).
+- `database/` — `init.sql` (schema + seed do dono e da Academia Ge Ribeiro).
 - `docker/` — imagem PHP + Apache (`pdo_pgsql`).
 
 ## Requisitos
@@ -32,12 +32,12 @@ Na primeira execução o Postgres aplica o `database/init.sql` automaticamente.
 
 - **E-mail:** `owner@gymapp.local`
 - **Senha:** `owner123`
-- Academia seed: **Academia Demo** (id `1` no banco).
+- Academia seed: **Academia Ge Ribeiro** (id `1` no banco).
 
 Fluxo sugerido para testar:
 
 1. Entre como dono e aprove alunos pendentes.
-2. Em **Cadastro**, crie um aluno escolhendo **Academia Demo**.
+2. Em **Cadastro**, crie um aluno (conta vinculada à **Academia Ge Ribeiro**).
 3. Volte como dono, **aprove** o aluno.
 4. Entre como aluno: veja **treinos** e faça **Registrar Treino** informando horário de **entrada** e **saída** para a **data de hoje**. A saída **não pode ser menor** que a entrada (saída >= entrada).  
 
@@ -65,15 +65,17 @@ Todas as respostas são JSON. Autenticação: **sessão PHP** (cookie), com `cre
 | `POST` | `/api/auth/logout` | Logado |
 | `GET` | `/api/auth/me` | Logado |
 | `GET` | `/api/owner/members` | Dono |
-| `POST` | `/api/owner/members/{id}/approve` | Dono |
+| `POST` | `/api/owner/members/{id}/approve` | Dono — só com associação **pendente** |
+| `POST` | `/api/owner/members/{id}/suspend` | Dono — corpo JSON `{ "reason" }` (chaves: `inadimplencia`, `pausa_plano`, `solicitacao_academia`, `outros`) |
+| `POST` | `/api/owner/members/{id}/reactivate` | Dono — aluno com associação **suspensa** volta para **ativa** |
 | `GET` | `/api/owner/workouts?member_id=` | Dono |
 | `POST` | `/api/owner/workouts` | Dono — `member_user_id`, `content`, `title` (opcional) |
 | `PATCH` | `/api/owner/workouts/{id}` | Dono — `content` e/ou `title` |
 | `DELETE` | `/api/owner/workouts/{id}` | Dono |
 | `GET` | `/api/owner/checkins` | Dono — opcional `?member_id=` |
-| `GET` | `/api/member/workouts` | Aluno aprovado |
-| `POST` | `/api/member/training-records` | Aluno aprovado — `date` (opcional), `workout_id`, `arrival_time`, `departure_time` |
-| `GET` | `/api/member/training-history` | Aluno aprovado — histórico (com treino realizado) para dashboard |
+| `GET` | `/api/member/workouts` | Aluno **ativo** ou **suspenso** (modo consulta) |
+| `POST` | `/api/member/training-records` | Aluno com associação **ativa** apenas |
+| `GET` | `/api/member/training-history` | Aluno **ativo** ou **suspenso** (consulta) |
 
 Obs.: os endpoints antigos `/api/member/checkins` e `/api/member/checkout` ainda podem existir no backend, mas o fluxo do front do aluno deve usar os endpoints de `training-*`.
 
@@ -89,13 +91,16 @@ Se você já rodou o projeto **antes** desta alteração e o Postgres está em u
 docker compose exec -T db psql -U gym -d gymapp < database/migrate_add_checkout.sql
 docker compose exec -T db psql -U gym -d gymapp < database/migrate_add_checkin_workout.sql
 docker compose exec -T db psql -U gym -d gymapp < database/migrate_add_function_procedure_trigger.sql
+docker compose exec -T db psql -U gym -d gymapp < database/migrate_membership_suspended.sql
 ```
 
-O último script cria no PostgreSQL os objetos acadêmicos e de apoio:
+O arquivo `migrate_add_function_procedure_trigger.sql` cria no PostgreSQL os objetos acadêmicos e de apoio:
 - **Functions:** `fn_workout_display_title`, `fn_training_duration_minutes`
 - **Procedure:** `sp_approve_member`
 - **Triggers:** `checkins_validate_times`, `workouts_touch_updated_at`
 - **View:** `vw_training_records`
+
+O arquivo `migrate_membership_suspended.sql` adiciona estado **suspenso** na associação, coluna `suspension_reason` e redefine `sp_approve_member` (limpa motivo ao aprovar).
 
 Exemplo de chamada da procedure no `psql`: `CALL sp_approve_member(1, <id_do_aluno>);`
 

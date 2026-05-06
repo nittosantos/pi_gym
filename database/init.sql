@@ -20,7 +20,8 @@ CREATE TABLE memberships (
     id SERIAL PRIMARY KEY,
     gym_id INT NOT NULL REFERENCES gyms (id) ON DELETE CASCADE,
     user_id INT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('active', 'pending')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('active', 'pending', 'suspended')),
+    suspension_reason VARCHAR(40) NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (gym_id, user_id)
 );
@@ -94,7 +95,8 @@ BEGIN
   END IF;
 
   UPDATE memberships
-  SET status = 'active'
+  SET status = 'active',
+      suspension_reason = NULL
   WHERE gym_id = p_gym_id AND user_id = p_member_id;
 
   UPDATE users
@@ -194,4 +196,4 @@ VALUES (
 );
 
 INSERT INTO gyms (name, owner_user_id)
-VALUES ('Academia Demo', 1);
+VALUES ('Academia Ge Ribeiro', 1);

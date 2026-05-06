@@ -87,7 +87,11 @@
           <span>Academia Ge Ribeiro</span>
         </a>
         <div class="d-flex align-items-center gap-2">
-          <span class="text-secondary small" id="who"></span>
+          <span class="small d-inline-flex align-items-center gap-1 flex-wrap text-secondary" id="whoLine">
+            <span id="whoGym" class="panel-gym-name fw-semibold d-none"></span>
+            <span id="whoSep" class="d-none" aria-hidden="true">·</span>
+            <span id="whoEmail"></span>
+          </span>
           <button
             type="button"
             class="btn btn-outline-secondary btn-sm panel-theme-toggle"
@@ -108,7 +112,19 @@
       <div id="alert" class="alert alert-danger d-none m-3"></div>
       <div id="pending" class="alert alert-warning d-none m-3"></div>
 
-      <div id="activeArea" class="d-none row g-0 flex-grow-1">
+      <div id="activeArea" class="d-none d-flex flex-column flex-grow-1 min-vh-0">
+        <div
+          id="suspendedBanner"
+          class="alert alert-warning d-none mx-3 mt-3 mb-0 flex-shrink-0"
+          role="status"
+        >
+          <strong>Acesso apenas para consulta.</strong>
+          <span id="suspendedBannerDetail" class="d-block small mt-1"></span>
+          <span class="d-block small mt-1 mb-0">
+            Para registrar treinos novamente, regularize na recepção ou financeiro da academia.
+          </span>
+        </div>
+        <div class="row g-0 flex-grow-1 min-h-0">
         <aside class="col-12 col-lg-3 col-xl-2 app-sidebar p-3 p-lg-4">
           <div class="mb-4">
             <h6 class="mb-1 fw-semibold">Painel Aluno</h6>
@@ -205,6 +221,7 @@
             <div id="workouts" class="vstack gap-3"></div>
           </section>
         </main>
+        </div>
       </div>
     </div>
 
@@ -254,13 +271,44 @@
       const workoutsEl = document.getElementById('workouts');
       const historyEl = document.getElementById('historyList');
       const recordWorkoutEl = document.getElementById('recordWorkout');
+      window.memberConsultationOnly = false;
 
       function showError(msg) {
         alertEl.textContent = msg;
         alertEl.classList.remove('d-none');
       }
 
+      function applyConsultationMode(suspended, label) {
+        window.memberConsultationOnly = suspended;
+        const banner = document.getElementById('suspendedBanner');
+        const detail = document.getElementById('suspendedBannerDetail');
+        if (suspended) {
+          banner.classList.remove('d-none');
+          detail.textContent = label
+            ? 'Motivo informado pela gestão: ' + label + '.'
+            : 'O registro de novos treinos foi temporariamente restrito.';
+        } else {
+          banner.classList.add('d-none');
+          detail.textContent = '';
+        }
+        const recordNav = document.querySelector('.sidebar-btn[data-section="record"]');
+        const btnGoRecord = document.getElementById('btnGoRecord');
+        const btnSaveRecord = document.getElementById('btnSaveRecord');
+        ['recordWorkout', 'arrivalTime', 'departureTime'].forEach((fid) => {
+          const el = document.getElementById(fid);
+          if (el) el.disabled = suspended;
+        });
+        [recordNav, btnGoRecord, btnSaveRecord].forEach((el) => {
+          if (!el) return;
+          el.disabled = suspended;
+          el.classList.toggle('opacity-50', suspended);
+        });
+      }
+
       function switchSection(section) {
+        if (window.memberConsultationOnly && section === 'record') {
+          section = 'dashboard';
+        }
         document.querySelectorAll('.content-section').forEach((el) => {
           el.classList.toggle('d-none', el.id !== 'section-' + section);
         });
@@ -376,6 +424,7 @@
       });
 
       document.getElementById('btnSaveRecord').addEventListener('click', async () => {
+        if (window.memberConsultationOnly) return;
         alertEl.classList.add('d-none');
         const date = document.getElementById('recordDate').value;
         const workout_id = parseInt(recordWorkoutEl.value, 10);
@@ -417,17 +466,33 @@
           return;
         }
 
+        const gymEl = document.getElementById('whoGym');
+        const sepEl = document.getElementById('whoSep');
+        const emailEl = document.getElementById('whoEmail');
         const gymName = me.user.gym ? me.user.gym.name : '';
-        document.getElementById('who').textContent = (gymName ? gymName + ' · ' : '') + me.user.email;
+        emailEl.textContent = me.user.email;
+        if (gymName) {
+          gymEl.textContent = gymName;
+          gymEl.classList.remove('d-none');
+          sepEl.classList.remove('d-none');
+        } else {
+          gymEl.textContent = '';
+          gymEl.classList.add('d-none');
+          sepEl.classList.add('d-none');
+        }
 
-        const ok =
-          me.user.status === 'active' && me.user.membership_status === 'active';
-        if (!ok) {
+        const canUsePanel =
+          me.user.status === 'active' &&
+          (me.user.membership_status === 'active' || me.user.membership_status === 'suspended');
+        if (!canUsePanel) {
           pendingEl.textContent =
-            'Seu cadastro ainda não foi aprovado (ou a associação está pendente). Quando o dono da academia aprovar, atualize esta página.';
+            'Seu cadastro ainda não foi aprovado (ou a associação está pendente). Quando a gestão da academia aprovar, atualize esta página.';
           pendingEl.classList.remove('d-none');
           return;
         }
+
+        const suspended = me.user.membership_status === 'suspended';
+        applyConsultationMode(suspended, me.user.suspension_label || '');
 
         activeArea.classList.remove('d-none');
         switchSection('dashboard');

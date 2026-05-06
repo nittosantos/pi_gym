@@ -40,6 +40,12 @@ final class Router
             if ($method === 'POST' && preg_match('#^/owner/members/(\d+)/approve$#', $path, $m)) {
                 OwnerController::approveMember((int) $m[1]);
             }
+            if ($method === 'POST' && preg_match('#^/owner/members/(\d+)/suspend$#', $path, $m)) {
+                OwnerController::suspendMember((int) $m[1]);
+            }
+            if ($method === 'POST' && preg_match('#^/owner/members/(\d+)/reactivate$#', $path, $m)) {
+                OwnerController::reactivateMember((int) $m[1]);
+            }
             if (($method === 'GET' || $method === 'POST') && $path === '/owner/workouts') {
                 OwnerController::workouts();
             }

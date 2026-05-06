@@ -9,7 +9,7 @@ VALUES
   ('aluno3@gymapp.local', crypt('aluno123', gen_salt('bf')), 'member', 'active')
 ON CONFLICT (email) DO NOTHING;
 
--- Vínculos com a academia demo (id = 1)
+-- Vínculos com a academia Ge Ribeiro (id = 1)
 INSERT INTO memberships (gym_id, user_id, status)
 SELECT 1, u.id, CASE WHEN u.status = 'active' THEN 'active' ELSE 'pending' END
 FROM users u

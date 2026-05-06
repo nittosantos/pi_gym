@@ -129,7 +129,7 @@ final class AuthController
         }
 
         Response::json([
-            'message' => 'Cadastro criado. Aguarde a aprovação do dono da academia.',
+            'message' => 'Cadastro criado. Aguarde a aprovação da gestão da academia.',
             'user_id' => $userId,
         ], 201);
     }
@@ -156,7 +156,7 @@ final class AuthController
 
         if ($role === 'member') {
             $stmt = Database::pdo()->prepare(
-                'SELECT g.id, g.name, m.status AS membership_status
+                'SELECT g.id, g.name, m.status AS membership_status, m.suspension_reason
                  FROM memberships m
                  JOIN gyms g ON g.id = m.gym_id
                  WHERE m.user_id = :uid
@@ -167,6 +167,13 @@ final class AuthController
             if ($row !== false) {
                 $out['gym'] = ['id' => (int) $row['id'], 'name' => (string) $row['name']];
                 $out['membership_status'] = (string) $row['membership_status'];
+                if (($row['membership_status'] ?? '') === 'suspended') {
+                    $reasonKey = $row['suspension_reason'] !== null && $row['suspension_reason'] !== ''
+                        ? (string) $row['suspension_reason']
+                        : null;
+                    $out['suspension_reason'] = $reasonKey;
+                    $out['suspension_label'] = MembershipSuspension::label($reasonKey);
+                }
             } else {
                 $out['gym'] = null;
             }

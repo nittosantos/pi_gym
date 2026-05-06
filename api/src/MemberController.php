@@ -13,7 +13,7 @@ final class MemberController
         if (Request::method() !== 'GET') {
             Response::error('Método não permitido', 405);
         }
-        $ctx = Auth::requireActiveMember();
+        $ctx = Auth::requireMemberRead();
         $gymId = $ctx['gym_id'];
         $userId = (int) $ctx['user']['id'];
 
@@ -165,7 +165,7 @@ final class MemberController
         if (Request::method() !== 'GET') {
             Response::error('Método não permitido', 405);
         }
-        $ctx = Auth::requireActiveMember();
+        $ctx = Auth::requireMemberRead();
         $gymId = $ctx['gym_id'];
         $userId = (int) $ctx['user']['id'];
 

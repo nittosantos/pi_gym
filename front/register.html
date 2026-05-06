@@ -27,13 +27,19 @@
           <div class="card-body p-4">
             <h1 class="h3 text-center mb-1">Criar conta de aluno</h1>
             <p class="text-center text-secondary small mb-4">
-              Seu cadastro ficará pendente até a aprovação da academia.
+              Seu cadastro ficará pendente até a aprovação da gestão da academia.
             </p>
             <div id="alert" class="alert d-none" role="alert"></div>
-            <div class="mb-3">
-              <label class="form-label" for="gym_id">Academia</label>
-              <select class="form-select" id="gym_id" required></select>
+
+            <!-- Uma academia: vínculo silencioso (marca já aparece no topo). Várias: select abaixo. -->
+            <input type="hidden" id="gym_id_fixed" value="" />
+
+            <!-- Várias academias (ex.: ambiente de testes): mantém seleção -->
+            <div id="gymMultipleWrap" class="mb-3 d-none">
+              <label class="form-label" for="gym_select">Academia</label>
+              <select class="form-select" id="gym_select"></select>
             </div>
+
             <div class="mb-3">
               <label class="form-label" for="email">E-mail</label>
               <input class="form-control" type="email" id="email" required autocomplete="username" />
@@ -49,7 +55,9 @@
                 autocomplete="new-password"
               />
             </div>
-            <button type="submit" class="btn btn-auth-primary w-100">Enviar cadastro</button>
+            <button type="submit" class="btn btn-auth-primary w-100" id="btnSubmit" disabled>
+              Enviar cadastro
+            </button>
             <p class="text-center text-secondary mt-3 mb-0 small">
               Já possui conta?
               <a href="login.html" class="text-decoration-none fw-semibold">Entrar</a>
@@ -64,28 +72,65 @@
     <script src="assets/js/api.js"></script>
     <script>
       const alertEl = document.getElementById('alert');
-      const gymSelect = document.getElementById('gym_id');
+      const gymMultipleWrap = document.getElementById('gymMultipleWrap');
+      const gymIdFixed = document.getElementById('gym_id_fixed');
+      const gymSelect = document.getElementById('gym_select');
 
-      (async function loadGyms() {
+      function showLoadError(msg) {
+        alertEl.className = 'alert alert-danger';
+        alertEl.textContent = msg;
+        alertEl.classList.remove('d-none');
+      }
+
+      async function setupGyms() {
         try {
           const data = await apiJson('/gyms');
-          gymSelect.innerHTML =
-            '<option value="">Selecione…</option>' +
-            data.gyms.map((g) => `<option value="${g.id}">${g.name}</option>`).join('');
+          const gyms = data.gyms || [];
+          if (!gyms.length) {
+            showLoadError(
+              'Nenhuma academia configurada no sistema. Entre em contato com o suporte.'
+            );
+            document.getElementById('btnSubmit').disabled = true;
+            return;
+          }
+          gymMultipleWrap.classList.add('d-none');
+          gymIdFixed.value = '';
+          if (gyms.length === 1) {
+            gymIdFixed.value = String(gyms[0].id);
+          } else {
+            gymSelect.innerHTML = gyms
+              .map((g) => `<option value="${g.id}">${g.name}</option>`)
+              .join('');
+            gymMultipleWrap.classList.remove('d-none');
+          }
+          document.getElementById('btnSubmit').disabled = false;
         } catch (err) {
-          alertEl.className = 'alert alert-danger';
-          alertEl.textContent =
-            'Não foi possível carregar as academias. Verifique se a API e o banco estão no ar.';
-          alertEl.classList.remove('d-none');
+          showLoadError(
+            'Não foi possível carregar os dados. Verifique se a API e o banco estão no ar.'
+          );
+          document.getElementById('btnSubmit').disabled = true;
         }
-      })();
+      }
+
+      setupGyms();
+
+      function resolveGymId() {
+        if (!gymMultipleWrap.classList.contains('d-none')) {
+          return parseInt(gymSelect.value, 10);
+        }
+        return parseInt(gymIdFixed.value, 10);
+      }
 
       document.getElementById('form').addEventListener('submit', async (e) => {
         e.preventDefault();
         alertEl.classList.add('d-none');
-        const gym_id = parseInt(gymSelect.value, 10);
+        const gym_id = resolveGymId();
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
+        if (!gym_id || Number.isNaN(gym_id)) {
+          showLoadError('Não foi possível identificar a academia. Recarregue a página.');
+          return;
+        }
         try {
           const data = await apiJson('/auth/register', {
             method: 'POST',
@@ -95,10 +140,7 @@
           alertEl.textContent = data.message || 'Cadastro criado.';
           alertEl.classList.remove('d-none');
           document.getElementById('form').reset();
-          gymSelect.innerHTML = '<option value="">Selecione…</option>';
-          const gyms = await apiJson('/gyms');
-          gymSelect.innerHTML +=
-            gyms.gyms.map((g) => `<option value="${g.id}">${g.name}</option>`).join('');
+          await setupGyms();
         } catch (err) {
           alertEl.className = 'alert alert-danger';
           alertEl.textContent = err.message || 'Erro ao cadastrar';
