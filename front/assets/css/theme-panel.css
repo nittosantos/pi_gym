@@ -42,7 +42,7 @@ body.panel-shell {
   background-color: var(--panel-topbar-bg) !important;
 }
 
-/* Aviso “Modo consulta” — #suspendedBanner + !important evita perder fundo/borda (cache / ordem CSS) */
+/* Aviso “Modo consulta” — borda âmbar + fundo levemente amarelado, ainda discreto */
 .panel-shell .member-suspend-strip,
 #suspendedBanner.member-suspend-strip {
   width: 100%;
@@ -52,20 +52,12 @@ body.panel-shell {
 .panel-shell .member-suspend-strip--in-dashboard,
 #suspendedBanner.member-suspend-strip--in-dashboard {
   box-sizing: border-box;
-  border-radius: 12px !important;
-  border: 2px solid #eab308 !important;
-  border-left: 6px solid #ca8a04 !important;
-  background-color: #fef9c3 !important;
-  background-image: linear-gradient(
-    145deg,
-    #fef9c3 0%,
-    #fef08a 45%,
-    #fde68a 100%
-  ) !important;
-  box-shadow:
-    0 0 0 1px rgba(250, 204, 21, 0.45),
-    0 8px 24px rgba(202, 138, 4, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  border-radius: 12px;
+  border: 1px solid rgba(202, 138, 4, 0.42);
+  border-left: 3px solid #ca8a04;
+  background-color: #fffbeb;
+  background-image: linear-gradient(180deg, #fffbeb 0%, #fef9c3 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
 .panel-shell .member-suspend-strip__chip {
@@ -75,8 +67,8 @@ body.panel-shell {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #92400e;
-  background: rgba(251, 191, 36, 0.55);
-  border: 1px solid rgba(180, 83, 9, 0.35);
+  background: rgba(251, 191, 36, 0.28);
+  border: 1px solid rgba(180, 83, 9, 0.22);
   border-radius: 999px;
   padding: 0.2rem 0.55rem;
   margin-bottom: 0.35rem;
@@ -86,17 +78,17 @@ body.panel-shell {
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #713f12;
+  color: var(--panel-heading);
   line-height: 1.25;
 }
 
 .panel-shell .member-suspend-strip__detail {
-  color: #78350f;
+  color: var(--panel-text-muted);
   font-weight: 500;
 }
 
 .panel-shell .member-suspend-strip__body {
-  color: #854d0e;
+  color: var(--panel-text);
   line-height: 1.45;
 }
 
@@ -108,14 +100,9 @@ body.panel-shell {
   align-items: center;
   justify-content: center;
   font-size: 1.35rem;
-  color: #92400e;
-  background: linear-gradient(
-    145deg,
-    rgba(251, 191, 36, 0.85) 0%,
-    rgba(252, 211, 77, 0.65) 100%
-  );
-  border: 1px solid rgba(180, 83, 9, 0.35);
-  box-shadow: 0 2px 8px rgba(202, 138, 4, 0.25);
+  color: #a16207;
+  background: rgba(251, 191, 36, 0.22);
+  border: 1px solid rgba(180, 83, 9, 0.18);
 }
 
 .panel-shell .member-suspend-strip .letter-spacing-tight {
@@ -124,48 +111,35 @@ body.panel-shell {
 
 html[data-bs-theme="dark"] .panel-shell .member-suspend-strip--in-dashboard,
 html[data-bs-theme="dark"] #suspendedBanner.member-suspend-strip--in-dashboard {
-  border-color: #facc15 !important;
-  border-left-color: #fde047 !important;
-  background-color: #451a03 !important;
-  background-image: linear-gradient(
-    145deg,
-    #451a03 0%,
-    #78350f 42%,
-    #451a03 100%
-  ) !important;
-  box-shadow:
-    0 0 0 1px rgba(250, 204, 21, 0.35),
-    0 10px 32px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(250, 204, 21, 0.32);
+  border-left: 3px solid rgba(250, 204, 21, 0.55);
+  background-color: #1a1712;
+  background-image: linear-gradient(180deg, #1c1914 0%, #16140f 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 html[data-bs-theme="dark"] .panel-shell .member-suspend-strip__chip {
-  color: #fef3c7;
-  background: rgba(217, 119, 6, 0.45);
-  border-color: rgba(250, 204, 21, 0.35);
+  color: #fde68a;
+  background: rgba(217, 119, 6, 0.28);
+  border-color: rgba(250, 204, 21, 0.22);
 }
 
 html[data-bs-theme="dark"] .panel-shell .member-suspend-strip__title {
-  color: #fde68a;
+  color: var(--panel-heading);
 }
 
 html[data-bs-theme="dark"] .panel-shell .member-suspend-strip__detail {
-  color: #fcd34d;
+  color: var(--panel-text-muted);
 }
 
 html[data-bs-theme="dark"] .panel-shell .member-suspend-strip__body {
-  color: rgba(253, 230, 138, 0.92);
+  color: var(--panel-text);
 }
 
 html[data-bs-theme="dark"] .panel-shell .member-suspend-strip__icon-badge {
-  color: #fef08a;
-  background: linear-gradient(
-    145deg,
-    rgba(180, 83, 9, 0.65) 0%,
-    rgba(146, 64, 14, 0.85) 100%
-  );
-  border-color: rgba(250, 204, 21, 0.35);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  color: #fde047;
+  background: rgba(180, 83, 9, 0.35);
+  border-color: rgba(250, 204, 21, 0.22);
 }
 
 .panel-shell .navbar-brand {
