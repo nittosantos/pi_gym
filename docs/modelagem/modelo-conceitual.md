@@ -11,7 +11,7 @@ Este modelo representa as entidades de negócio do sistema de academia e seus re
   - Cada academia possui exatamente um dono (`owner_user_id`).
 - **Associação (`memberships`)**
   - Liga aluno a academia.
-  - Controla status de aprovação do aluno na academia.
+  - Controla o vínculo: `pending` (aguardando aprovação), `active` (aprovado) ou `suspended` (acesso limitado a consultas; motivo genérico opcional em `suspension_reason`).
 - **Treino (`workouts`)**
   - É cadastrado para um aluno específico dentro de uma academia.
 - **Registro de treino / Check-in (`checkins`)**
@@ -47,6 +47,7 @@ erDiagram
     int gym_id FK
     int user_id FK
     string status
+    string suspension_reason
   }
   WORKOUTS {
     int id PK

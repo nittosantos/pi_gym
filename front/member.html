@@ -28,7 +28,7 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-    <link href="assets/css/theme-panel.css" rel="stylesheet" />
+    <link href="assets/css/theme-panel.css?v=20260205" rel="stylesheet" />
     <link href="assets/css/theme-panel-footer.css" rel="stylesheet" />
     <style>
       .action-card {
@@ -112,18 +112,7 @@
       <div id="alert" class="alert alert-danger d-none m-3"></div>
       <div id="pending" class="alert alert-warning d-none m-3"></div>
 
-      <div id="activeArea" class="d-none d-flex flex-column flex-grow-1 min-vh-0">
-        <div
-          id="suspendedBanner"
-          class="alert alert-warning d-none mx-3 mt-3 mb-0 flex-shrink-0"
-          role="status"
-        >
-          <strong>Acesso apenas para consulta.</strong>
-          <span id="suspendedBannerDetail" class="d-block small mt-1"></span>
-          <span class="d-block small mt-1 mb-0">
-            Para registrar treinos novamente, regularize na recepção ou financeiro da academia.
-          </span>
-        </div>
+      <div id="activeArea" class="d-none flex-grow-1 min-vh-0 d-flex flex-column">
         <div class="row g-0 flex-grow-1 min-h-0">
         <aside class="col-12 col-lg-3 col-xl-2 app-sidebar p-3 p-lg-4">
           <div class="mb-4">
@@ -148,6 +137,21 @@
         <main class="col-12 col-lg-9 col-xl-10 p-3 p-lg-4">
           <section id="section-dashboard" class="content-section">
             <h2 class="h4 mb-3">Dashboard</h2>
+            <div id="suspendedBanner" class="member-suspend-strip member-suspend-strip--in-dashboard d-none mb-4" role="status">
+              <div class="d-flex gap-3 align-items-start px-3 py-3 px-md-4">
+                <span class="member-suspend-strip__icon-badge flex-shrink-0" aria-hidden="true">
+                  <i class="bi bi-eye-slash-fill"></i>
+                </span>
+                <div class="flex-grow-1 min-w-0">
+                  <span class="member-suspend-strip__chip">Aviso da academia</span>
+                  <strong class="member-suspend-strip__title d-block">Modo consulta</strong>
+                  <span id="suspendedBannerDetail" class="member-suspend-strip__detail small d-block mt-2 mb-0"></span>
+                  <p class="member-suspend-strip__body small mb-0 mt-2">
+                    Treinos e histórico disponíveis para leitura. Para novo registro, regularize na academia.
+                  </p>
+                </div>
+              </div>
+            </div>
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <button type="button" class="card shadow-sm action-card p-3" id="btnGoRecord">
@@ -193,7 +197,9 @@
                 <div class="mb-3">
                   <label class="form-label" for="recordDate">Data</label>
                   <input class="form-control" id="recordDate" type="date" readonly />
-                  <div class="form-text">Data travada no dia de hoje.</div>
+                  <div class="form-text">
+                    Sempre o dia atual — o servidor usa o mesmo critério (horário de Brasília).
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label" for="recordWorkout">Treino realizado</label>
@@ -273,6 +279,45 @@
       const recordWorkoutEl = document.getElementById('recordWorkout');
       window.memberConsultationOnly = false;
 
+      const TZ_BR = 'America/Sao_Paulo';
+
+      function formatTimeBr(iso) {
+        if (!iso) return '--:--';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '--:--';
+        return new Intl.DateTimeFormat('pt-BR', {
+          timeZone: TZ_BR,
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(d);
+      }
+
+      function formatDateLongBr(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '';
+        return new Intl.DateTimeFormat('pt-BR', {
+          timeZone: TZ_BR,
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }).format(d);
+      }
+
+      function formatWorkoutMeta(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '';
+        return new Intl.DateTimeFormat('pt-BR', {
+          timeZone: TZ_BR,
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(d);
+      }
+
       function showError(msg) {
         alertEl.textContent = msg;
         alertEl.classList.remove('d-none');
@@ -284,9 +329,7 @@
         const detail = document.getElementById('suspendedBannerDetail');
         if (suspended) {
           banner.classList.remove('d-none');
-          detail.textContent = label
-            ? 'Motivo informado pela gestão: ' + label + '.'
-            : 'O registro de novos treinos foi temporariamente restrito.';
+          detail.textContent = label ? 'Motivo informado pela gestão: ' + label + '.' : '';
         } else {
           banner.classList.add('d-none');
           detail.textContent = '';
@@ -343,42 +386,17 @@
           card.innerHTML = `
             <div class="card-body workout-head py-2 px-3">${w.title ? escapeHtml(w.title) : 'Treino #' + w.id}</div>
             <div class="card-body">
-              <div class="small text-muted mb-2">${escapeHtml(w.updated_at || w.created_at || '')}</div>
+              <div class="small text-muted mb-2">${
+                w.updated_at || w.created_at
+                  ? escapeHtml(formatWorkoutMeta(w.updated_at || w.created_at))
+                  : ''
+              }</div>
               <div class="small" style="white-space: pre-wrap">${escapeHtml(w.content)}</div>
             </div>`;
           workoutsEl.appendChild(card);
           const label = w.title ? escapeHtml(w.title) : `Treino #${w.id}`;
           recordWorkoutEl.innerHTML += `<option value="${w.id}">${label}</option>`;
         }
-      }
-
-      function formatDateBr(isoDate) {
-        const [y, m, d] = String(isoDate || '').split('-');
-        if (!y || !m || !d) return isoDate;
-        return `${d} de ${monthName(Number(m))} de ${y}`;
-      }
-
-      function monthName(month) {
-        const names = [
-          'janeiro',
-          'fevereiro',
-          'março',
-          'abril',
-          'maio',
-          'junho',
-          'julho',
-          'agosto',
-          'setembro',
-          'outubro',
-          'novembro',
-          'dezembro',
-        ];
-        return names[month - 1] || '';
-      }
-
-      function hhmm(value) {
-        if (!value) return '--:--';
-        return String(value).slice(11, 16);
       }
 
       async function loadHistory() {
@@ -390,16 +408,15 @@
         }
         historyEl.innerHTML = data.history
           .map((r) => {
-            const datePart = String(r.checked_in_at || '').slice(0, 10);
             const done = Boolean(r.checked_out_at);
             return `
               <div class="history-item p-3 d-flex justify-content-between align-items-center gap-3">
                 <div class="d-flex align-items-center gap-3">
                   <span class="history-dot"><i class="bi bi-clock"></i></span>
                   <div>
-                    <div>${formatDateBr(datePart)}</div>
+                    <div>${escapeHtml(formatDateLongBr(r.checked_in_at))}</div>
                     <div class="small fw-semibold">${escapeHtml(r.workout_title || 'Treino não informado')}</div>
-                    <div class="small text-secondary">${hhmm(r.checked_in_at)} - ${done ? hhmm(r.checked_out_at) : '--:--'}</div>
+                    <div class="small text-secondary">${formatTimeBr(r.checked_in_at)} – ${done ? formatTimeBr(r.checked_out_at) : '--:--'}</div>
                   </div>
                 </div>
                 <span class="${done ? 'status-done' : 'status-open'}">${done ? 'Concluído' : 'Em aberto'}</span>

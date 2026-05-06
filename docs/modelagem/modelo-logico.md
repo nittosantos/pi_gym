@@ -22,9 +22,10 @@ Modelo relacional (independente de detalhes físicos do SGBD).
 ### MEMBERSHIPS
 - **PK:** `id`
 - **FKs:** `gym_id -> GYMS.id`, `user_id -> USERS.id`
-- Atributos: `status`, `created_at`
+- Atributos: `status`, `suspension_reason`, `created_at`
 - Restrições:
-  - `status` em (`active`, `pending`)
+  - `status` em (`active`, `pending`, `suspended`)
+  - `suspension_reason`: opcional; quando suspenso, armazena chave do motivo (domínio definido na API)
   - `UNIQUE(gym_id, user_id)` (um vínculo por academia/aluno)
 
 ### WORKOUTS

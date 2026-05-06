@@ -130,6 +130,20 @@ html[data-bs-theme="dark"] .app-panel-footer .footer-social-link:hover {
   min-height: 0;
 }
 
+/* Painel aluno: a linha fica dentro de #activeArea — mesma altura que owner */
+.panel-shell .app-shell > #activeArea {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.panel-shell .app-shell > #activeArea > .row.g-0 {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
+}
+
 .panel-shell .app-sidebar {
   min-height: 0 !important;
   overflow-y: auto;

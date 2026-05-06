@@ -94,12 +94,17 @@ final class MemberController
         $departure = trim((string) ($body['departure_time'] ?? ''));
         $workoutId = (int) ($body['workout_id'] ?? 0);
 
-        $today = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y-m-d');
+        /** Alinhado ao campo de data do navegador: "hoje" no fuso de Brasília. */
+        $tzBr = new \DateTimeZone('America/Sao_Paulo');
+        $today = (new \DateTimeImmutable('now', $tzBr))->format('Y-m-d');
         if ($date === '') {
             $date = $today;
         }
         if ($date !== $today) {
-            Response::error('Só é permitido registrar treino para a data atual.', 422);
+            Response::error(
+                'Só é permitido registrar treino para o dia de hoje (horário de Brasília).',
+                422
+            );
         }
 
         if (!preg_match('/^\d{2}:\d{2}$/', $arrival) || !preg_match('/^\d{2}:\d{2}$/', $departure)) {
@@ -109,12 +114,12 @@ final class MemberController
         $arrivalAt = \DateTimeImmutable::createFromFormat(
             'Y-m-d H:i',
             $date . ' ' . $arrival,
-            new \DateTimeZone('UTC')
+            $tzBr
         );
         $departureAt = \DateTimeImmutable::createFromFormat(
             'Y-m-d H:i',
             $date . ' ' . $departure,
-            new \DateTimeZone('UTC')
+            $tzBr
         );
         if (!$arrivalAt || !$departureAt) {
             Response::error('Horário inválido.', 422);

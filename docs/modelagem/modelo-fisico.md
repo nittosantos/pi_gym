@@ -41,3 +41,4 @@ Implementação física baseada em PostgreSQL 16.
 
 - `database/init.sql` (estrutura completa para banco novo)
 - `database/migrate_add_*.sql` (evoluções incrementais)
+- `database/migrate_membership_suspended.sql` — estado **suspenso**, coluna `suspension_reason`, atualização da procedure `sp_approve_member`
