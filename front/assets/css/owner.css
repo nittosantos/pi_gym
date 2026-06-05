@@ -1,0 +1,31 @@
+.metric-card {
+  border: 0;
+  border-radius: 12px;
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 1rem;
+}
+
+.table-card,
+.section-card {
+  border: 0;
+  border-radius: 12px;
+}
+
+.status-pill {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+}
+
+/* Lista de Treinos — respiro visual semelhante às tabelas */
+#workoutsList .list-group-item {
+  padding-left: 32px;
+}

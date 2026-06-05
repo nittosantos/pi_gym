@@ -4,7 +4,7 @@ Monorepo simples com **front** estático (HTML/CSS/JS + Bootstrap), **API** em P
 
 ## Estrutura
 
-- `front/` — páginas e `assets/js/api.js` (chamadas `fetch` para `/api/...`).
+- `front/` — páginas HTML e `assets/` (`css/`, `js/` — API, painéis, datas em `America/Sao_Paulo`).
 - `api/` — PHP com roteador em `api/public/index.php` (Apache + `mod_rewrite`).
 - `database/` — `init.sql` (schema + seed do dono e da Academia Ge Ribeiro).
 - `docker/` — imagem PHP + Apache (`pdo_pgsql`).
@@ -77,7 +77,7 @@ Todas as respostas são JSON. Autenticação: **sessão PHP** (cookie), com `cre
 | `POST` | `/api/member/training-records` | Aluno com associação **ativa** apenas |
 | `GET` | `/api/member/training-history` | Aluno **ativo** ou **suspenso** (consulta) |
 
-Obs.: os endpoints antigos `/api/member/checkins` e `/api/member/checkout` ainda podem existir no backend, mas o fluxo do front do aluno deve usar os endpoints de `training-*`.
+O registro de treino do aluno usa **`POST /api/member/training-records`** (entrada + saída + treino no mesmo fluxo). A listagem do dono continua em **`GET /api/owner/checkins`** (tabela `checkins` no banco).
 
 ## Mesma origem (front + API)
 
@@ -161,10 +161,12 @@ Fluxo sugerido:
 
 ## Timezone e datas
 
-- O backend utiliza `TIMESTAMPTZ` no PostgreSQL.
-- Em algumas validações de data/hora o sistema trabalha em referência UTC.
-- Para apresentação acadêmica, considere que horários exibidos podem variar conforme timezone da máquina cliente.
-- Para padronizar totalmente, recomenda-se adotar uma timezone única de negócio (ex: `America/Sao_Paulo`) em toda a cadeia (API + banco + front).
+- Colunas de data/hora no PostgreSQL usam **`TIMESTAMPTZ`** (instante absoluto; o banco armazena em UTC internamente).
+- **Regra de negócio:** fuso **`America/Sao_Paulo`** (horário de Brasília) em toda a aplicação:
+  - **API:** `App\BusinessTimezone` (`api/src/BusinessTimezone.php`) e `date_default_timezone_set` no bootstrap.
+  - **Validação:** registro de treino só aceita o **dia de hoje** calculado em Brasília (`MemberController::registerTrainingRecord`).
+  - **Front:** `front/assets/js/datetime-br.js` — exibição, “hoje” no formulário e métricas (ex.: check-ins do dono).
+- Horários exibidos nas telas seguem Brasília independentemente do fuso do navegador ou do SO.
 
 ## Solução de problemas
 

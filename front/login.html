@@ -16,7 +16,7 @@
     <div
       class="container min-vh-100 d-flex align-items-center justify-content-center py-4 auth-wrap"
     >
-      <div class="w-100" style="max-width: 460px">
+      <div class="w-100 auth-shell">
         <div class="auth-brand">
           <a href="index.html">
             <img src="assets/branding/geribeiro/geribeiro.png" alt="Academia Ge Ribeiro" />
@@ -55,41 +55,6 @@
       </div>
     </div>
     <script src="assets/js/api.js"></script>
-    <script>
-      (async function () {
-        try {
-          const me = await getMe();
-          if (me.user.role === 'owner') {
-            window.location.href = 'owner.html';
-            return;
-          }
-          window.location.href = 'member.html';
-        } catch {
-          /* não logado */
-        }
-      })();
-
-      const alertEl = document.getElementById('alert');
-      document.getElementById('form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        alertEl.classList.add('d-none');
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        try {
-          const data = await apiJson('/auth/login', {
-            method: 'POST',
-            body: { email, password },
-          });
-          if (data.user.role === 'owner') {
-            window.location.href = 'owner.html';
-          } else {
-            window.location.href = 'member.html';
-          }
-        } catch (err) {
-          alertEl.textContent = err.message || 'Falha no login';
-          alertEl.classList.remove('d-none');
-        }
-      });
-    </script>
+    <script src="assets/js/login.js"></script>
   </body>
 </html>

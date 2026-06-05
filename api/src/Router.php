@@ -59,12 +59,6 @@ final class Router
             if ($method === 'GET' && $path === '/member/workouts') {
                 MemberController::workouts();
             }
-            if ($method === 'POST' && $path === '/member/checkins') {
-                MemberController::checkin();
-            }
-            if ($method === 'POST' && $path === '/member/checkout') {
-                MemberController::checkout();
-            }
             if ($method === 'POST' && $path === '/member/training-records') {
                 MemberController::registerTrainingRecord();
             }

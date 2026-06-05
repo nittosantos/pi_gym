@@ -27,57 +27,6 @@ final class MemberController
         Response::json(['workouts' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
-    public static function checkin(): never
-    {
-        if (Request::method() !== 'POST') {
-            Response::error('Método não permitido', 405);
-        }
-        $ctx = Auth::requireActiveMember();
-        $gymId = $ctx['gym_id'];
-        $userId = (int) $ctx['user']['id'];
-
-        $stmt = Database::pdo()->prepare(
-            'INSERT INTO checkins (gym_id, member_user_id, checked_in_at)
-             VALUES (:gid, :uid, NOW())
-             RETURNING id, checked_in_at, checked_out_at'
-        );
-        $stmt->execute(['gid' => $gymId, 'uid' => $userId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        Response::json(['checkin' => $row], 201);
-    }
-
-    /** Fecha o check-in mais recente ainda em aberto (sem horário de saída). */
-    public static function checkout(): never
-    {
-        if (Request::method() !== 'POST') {
-            Response::error('Método não permitido', 405);
-        }
-        $ctx = Auth::requireActiveMember();
-        $gymId = $ctx['gym_id'];
-        $userId = (int) $ctx['user']['id'];
-
-        $sql = 'WITH pick AS (
-                    SELECT id FROM checkins
-                    WHERE gym_id = :gid AND member_user_id = :uid AND checked_out_at IS NULL
-                    ORDER BY checked_in_at DESC
-                    LIMIT 1
-                )
-                UPDATE checkins c
-                SET checked_out_at = NOW()
-                FROM pick
-                WHERE c.id = pick.id
-                RETURNING c.id, c.checked_in_at, c.checked_out_at';
-
-        $stmt = Database::pdo()->prepare($sql);
-        $stmt->execute(['gid' => $gymId, 'uid' => $userId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row === false) {
-            Response::error('Não há check-in em aberto para registrar a saída.', 409);
-        }
-
-        Response::json(['checkout' => $row]);
-    }
-
     /** Registra um treino/check-in completo do dia (entrada e saída). */
     public static function registerTrainingRecord(): never
     {
@@ -94,9 +43,8 @@ final class MemberController
         $departure = trim((string) ($body['departure_time'] ?? ''));
         $workoutId = (int) ($body['workout_id'] ?? 0);
 
-        /** Alinhado ao campo de data do navegador: "hoje" no fuso de Brasília. */
-        $tzBr = new \DateTimeZone('America/Sao_Paulo');
-        $today = (new \DateTimeImmutable('now', $tzBr))->format('Y-m-d');
+        $tzBr = BusinessTimezone::zone();
+        $today = BusinessTimezone::todayIso();
         if ($date === '') {
             $date = $today;
         }

@@ -1,0 +1,52 @@
+.action-card {
+  border: 0;
+  border-radius: 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.action-card .icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.workout-card {
+  border: 0;
+  border-radius: 10px;
+}
+
+.history-item {
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+}
+
+.history-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #dff3ea;
+  color: #198754;
+}
+
+.status-done {
+  background: #dff3ea;
+  color: #176b47;
+  border-radius: 6px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.status-open {
+  background: #fff3cd;
+  color: #8a6b14;
+  border-radius: 6px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+}

@@ -31,6 +31,15 @@ body.auth-page::before {
   z-index: 1;
 }
 
+.auth-shell {
+  width: 100%;
+  max-width: 460px;
+}
+
+.auth-shell--wide {
+  max-width: 520px;
+}
+
 .auth-brand {
   text-align: center;
   margin-bottom: 1.25rem;
