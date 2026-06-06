@@ -1,0 +1,71 @@
+@startuml diagrama-classes-aplicacao
+title Diagrama de Classes — Camada de aplicação (API PHP)
+skinparam classAttributeIconSize 0
+
+package "api/src" {
+  class Router {
+    +dispatch() : void
+  }
+
+  class AuthController {
+    +login()
+    +logout()
+    +register()
+    +me()
+  }
+
+  class OwnerController {
+    +members()
+    +approveMember()
+    +suspendMember()
+    +reactivateMember()
+    +workouts()
+    +workoutById()
+    +checkins()
+  }
+
+  class MemberController {
+    +workouts()
+    +registerTrainingRecord()
+    +trainingHistory()
+  }
+
+  class Auth {
+    +requireLogin()
+    +requireOwner()
+    +requireActiveMember()
+    +requireMemberRead()
+  }
+
+  class Database {
+    +pdo() : PDO
+  }
+
+  class BusinessTimezone {
+    +todayIso() : string
+    +zone() : DateTimeZone
+  }
+
+  class MembershipSuspension {
+    +isValidKey()
+    +label()
+  }
+
+  class Request
+  class Response
+}
+
+Router --> AuthController
+Router --> OwnerController
+Router --> MemberController
+AuthController --> Auth
+AuthController --> Database
+OwnerController --> Auth
+OwnerController --> Database
+OwnerController --> MembershipSuspension
+MemberController --> Auth
+MemberController --> Database
+MemberController --> BusinessTimezone
+Auth --> Database
+
+@enduml

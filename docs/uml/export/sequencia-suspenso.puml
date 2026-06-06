@@ -1,0 +1,21 @@
+@startuml sequencia-suspenso
+title Aluno suspenso — leitura vs escrita
+actor Aluno
+participant "API\nMemberController" as API
+participant Auth
+database PostgreSQL as BD
+
+Aluno -> API : GET /member/workouts
+API -> Auth : requireMemberRead()
+Auth -> BD : membership IN (active, suspended)
+BD --> Auth : ok
+API -> BD : SELECT workouts
+API --> Aluno : 200
+
+Aluno -> API : POST /member/training-records
+API -> Auth : requireActiveMember()
+Auth -> BD : membership = suspended
+Auth --> API : 403
+API --> Aluno : 403 mensagem suspensão
+
+@enduml

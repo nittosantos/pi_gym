@@ -1,10 +1,15 @@
-# Diagrama de Classes (domínio)
+# Diagrama de Classes
 
-Visão **orientada a objetos do negócio** (entidades persistentes e relacionamentos). Não lista todas as classes PHP da camada de aplicação (`Controller`, `Router`, etc.) — apenas o **modelo de domínio** espelhado no banco + papéis.
+Dois níveis de visão, alinhados ao projeto:
+
+1. **Domínio** — entidades persistentes (espelho do PostgreSQL).
+2. **Aplicação** — classes PHP da API (`api/src`).
+
+**Diagramas UML (exportáveis):** [`diagrama-classes.puml`](diagrama-classes.puml) (contém os dois diagramas).
 
 ---
 
-## Diagrama UML (domínio)
+## 1. Domínio (negócio / banco)
 
 ```mermaid
 classDiagram
@@ -43,19 +48,44 @@ classDiagram
     +DateTime saidaOpcional
   }
 
-  Usuario "1" --> "0..1" Academia : possui / gerencia como dono
-  Academia "1" --> "1" Usuario : owner_user_id
-
-  Usuario "1" --> "*" AssociacaoAcademia : memberships
-  Academia "1" --> "*" AssociacaoAcademia : memberships
-
-  Academia "1" --> "*" Treino : workouts
-  Usuario "1" --> "*" Treino : destinado ao aluno
-
+  Usuario "1" --> "0..1" Academia : gerencia (dono)
+  Usuario "1" --> "*" AssociacaoAcademia
+  Academia "1" --> "*" AssociacaoAcademia
+  Academia "1" --> "*" Treino
+  Usuario "1" --> "*" Treino : aluno destinatário
   Academia "1" --> "*" RegistroPresenca
   Usuario "1" --> "*" RegistroPresenca
-  Treino "0..1" --> "*" RegistroPresenca : workout opcional
+  Treino "0..1" --> "*" RegistroPresenca
 ```
+
+### Mapeamento tabela ↔ classe
+
+| Classe | Tabela PostgreSQL |
+|--------|-------------------|
+| `Usuario` | `users` |
+| `Academia` | `gyms` |
+| `AssociacaoAcademia` | `memberships` |
+| `Treino` | `workouts` |
+| `RegistroPresenca` | `checkins` |
+
+---
+
+## 2. Aplicação (API PHP)
+
+Classes principais fora do domínio persistente:
+
+| Classe | Responsabilidade |
+|--------|------------------|
+| `Router` | Despacho de rotas HTTP |
+| `AuthController` | Login, logout, registro, `/me` |
+| `OwnerController` | Gestão de alunos, treinos, check-ins |
+| `MemberController` | Treinos, registro do dia, histórico |
+| `Auth` | Regras de sessão e permissão |
+| `BusinessTimezone` | Fuso `America/Sao_Paulo` |
+| `MembershipSuspension` | Motivos de suspensão |
+| `Database`, `Request`, `Response` | Infraestrutura HTTP/BD |
+
+O segundo diagrama em `diagrama-classes.puml` mostra dependências entre essas classes.
 
 ---
 
@@ -74,10 +104,10 @@ classDiagram
 |-------|-------------|
 | `pending` | Aguardando aprovação do dono. |
 | `active` | Aprovado; uso completo conforme regras da API. |
-| `suspended` | Modo consulta no portal do aluno; sem registrar novos treinos até reativação. |
+| `suspended` | Modo consulta no portal; sem registrar novos treinos. |
 
 ---
 
-## Camada de aplicação (referência rápida)
+## Como exportar
 
-Classes PHP principais (não no diagrama acima): `Router`, `AuthController`, `OwnerController`, `MemberController`, `Auth`, `Database`, `Request`, `Response`, `MembershipSuspension`.
+Abra [`diagrama-classes.puml`](diagrama-classes.puml) no PlantUML — o arquivo gera **dois** diagramas (domínio e aplicação) em sequência.

@@ -1,0 +1,18 @@
+@startuml sequencia-registro-treino
+title Registro de treino do dia
+actor Aluno
+participant "API\nMemberController" as API
+participant Auth
+database PostgreSQL as BD
+
+Aluno -> API : POST /member/training-records
+API -> Auth : requireActiveMember()
+Auth -> BD : membership status
+BD --> Auth : active
+API -> API : valida data (Brasília),\nhorários, workout_id
+API -> BD : INSERT checkins
+BD -> BD : trigger checkins_validate_times
+BD --> API : RETURNING id, timestamps
+API --> Aluno : 201 { record }
+
+@enduml

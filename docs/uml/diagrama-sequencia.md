@@ -1,6 +1,8 @@
 # Diagramas de Sequência
 
-Fluxos principais da API (sessão PHP, JSON). Participantes genéricos: **Cliente** (navegador), **API** (PHP), **BD** (PostgreSQL).
+Fluxos principais da API (sessão PHP, JSON). Participantes: **Cliente** (navegador), **API** (PHP), **BD** (PostgreSQL).
+
+**Diagramas UML (exportáveis):** [`diagrama-sequencia.puml`](diagrama-sequencia.puml) — quatro fluxos em um arquivo.
 
 ---
 
@@ -36,6 +38,7 @@ sequenceDiagram
   API-->>Aluno: 201
 
   Dono->>API: POST /owner/members/{id}/approve
+  API->>BD: verifica status = pending
   API->>BD: CALL sp_approve_member
   BD-->>API: ok
   API-->>Dono: 200
@@ -43,20 +46,24 @@ sequenceDiagram
 
 ---
 
-## 3. Suspender aluno (modo consulta)
+## 3. Registro de treino do dia
 
 ```mermaid
 sequenceDiagram
-  actor Dono as Cliente (dono)
-  participant API as OwnerController
+  actor Aluno
+  participant API as MemberController
+  participant Auth as Auth
   participant BD as PostgreSQL
 
-  Dono->>API: POST /owner/members/{id}/suspend { reason }
-  API->>BD: SELECT membership status = active
-  API->>BD: UPDATE memberships SET suspended + suspension_reason
-  API-->>Dono: 200
-
-  Note over Dono,BD: Aluno permanece com conta active; só o vínculo muda para suspended.
+  Aluno->>API: POST /member/training-records
+  API->>Auth: requireActiveMember()
+  Auth->>BD: membership = active
+  BD-->>Auth: ok
+  API->>API: valida data (Brasília), horários, workout
+  API->>BD: INSERT checkins
+  BD->>BD: trigger checkins_validate_times
+  BD-->>API: RETURNING row
+  API-->>Aluno: 201 { record }
 ```
 
 ---
@@ -79,11 +86,13 @@ sequenceDiagram
 
   Aluno->>API: POST /member/training-records
   API->>Auth: requireActiveMember()
-  Auth->>BD: membership = active
-  Auth-->>API: 403 se suspended
+  Auth->>BD: membership = suspended
+  Auth-->>API: 403
   API-->>Aluno: 403 mensagem de suspensão
 ```
 
 ---
 
-**Observação:** Para relatório acadêmico, os mesmos fluxos podem ser redesenhados em ferramenta UML com lifelines nomeadas `Router`, `OwnerController`, etc.; aqui o foco é o comportamento observável do sistema.
+## Como exportar
+
+Cada bloco `@startuml` em [`diagrama-sequencia.puml`](diagrama-sequencia.puml) pode ser exportado separadamente como PNG/SVG para o relatório acadêmico.

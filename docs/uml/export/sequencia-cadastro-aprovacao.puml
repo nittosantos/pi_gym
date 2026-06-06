@@ -1,0 +1,19 @@
+@startuml sequencia-cadastro-aprovacao
+title Cadastro de aluno + aprovação pelo dono
+actor "Cliente\n(cadastro)" as Aluno
+actor "Cliente\n(dono)" as Dono
+participant API
+database PostgreSQL as BD
+
+Aluno -> API : POST /auth/register
+API -> BD : INSERT users (pending)\n+ memberships (pending)
+BD --> API : ok
+API --> Aluno : 201
+
+Dono -> API : POST /owner/members/{id}/approve
+API -> BD : verifica status = pending
+API -> BD : CALL sp_approve_member
+BD --> API : ok
+API --> Dono : 200
+
+@enduml

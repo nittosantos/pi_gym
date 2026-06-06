@@ -1,0 +1,13 @@
+@startuml sequencia-login
+title Login e sessão
+actor Cliente
+participant "API\nAuthController" as API
+database PostgreSQL as BD
+
+Cliente -> API : POST /auth/login\n{ email, password }
+API -> BD : SELECT user por email
+BD --> API : registro + password_hash
+API -> API : password_verify + session user_id
+API --> Cliente : 200 { user }
+
+@enduml

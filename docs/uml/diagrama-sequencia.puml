@@ -1,0 +1,74 @@
+@startuml sequencia-login
+title Login e sessão
+actor Cliente
+participant "API\nAuthController" as API
+database PostgreSQL as BD
+
+Cliente -> API : POST /auth/login\n{ email, password }
+API -> BD : SELECT user por email
+BD --> API : registro + password_hash
+API -> API : password_verify + session user_id
+API --> Cliente : 200 { user }
+
+@enduml
+
+@startuml sequencia-cadastro-aprovacao
+title Cadastro de aluno + aprovação pelo dono
+actor "Cliente\n(cadastro)" as Aluno
+actor "Cliente\n(dono)" as Dono
+participant API
+database PostgreSQL as BD
+
+Aluno -> API : POST /auth/register
+API -> BD : INSERT users (pending)\n+ memberships (pending)
+BD --> API : ok
+API --> Aluno : 201
+
+Dono -> API : POST /owner/members/{id}/approve
+API -> BD : verifica status = pending
+API -> BD : CALL sp_approve_member
+BD --> API : ok
+API --> Dono : 200
+
+@enduml
+
+@startuml sequencia-registro-treino
+title Registro de treino do dia
+actor Aluno
+participant "API\nMemberController" as API
+participant Auth
+database PostgreSQL as BD
+
+Aluno -> API : POST /member/training-records
+API -> Auth : requireActiveMember()
+Auth -> BD : membership status
+BD --> Auth : active
+API -> API : valida data (Brasília),\nhorários, workout_id
+API -> BD : INSERT checkins
+BD -> BD : trigger checkins_validate_times
+BD --> API : RETURNING id, timestamps
+API --> Aluno : 201 { record }
+
+@enduml
+
+@startuml sequencia-suspenso
+title Aluno suspenso — leitura vs escrita
+actor Aluno
+participant "API\nMemberController" as API
+participant Auth
+database PostgreSQL as BD
+
+Aluno -> API : GET /member/workouts
+API -> Auth : requireMemberRead()
+Auth -> BD : membership IN (active, suspended)
+BD --> Auth : ok
+API -> BD : SELECT workouts
+API --> Aluno : 200
+
+Aluno -> API : POST /member/training-records
+API -> Auth : requireActiveMember()
+Auth -> BD : membership = suspended
+Auth --> API : 403
+API --> Aluno : 403 mensagem suspensão
+
+@enduml

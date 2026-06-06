@@ -1,0 +1,38 @@
+@startuml bpmn-suspensao-reativacao
+title BP-03 — Suspensão e reativação de vínculo
+skinparam activityShape roundBox
+
+|Dono|
+start
+:Listar alunos da academia;
+
+partition "Suspender" {
+  if (Vínculo = active?) then (sim)
+    :Abrir modal e escolher motivo\n(inadimplencia, pausa_plano, etc.);
+    :POST /owner/members/{id}/suspend;
+    |Sistema|
+    :UPDATE memberships\nstatus=suspended, suspension_reason;
+    |Aluno (efeito)|
+    :Banner de suspensão no portal;
+    :Pode consultar treinos e histórico;
+    :Não pode registrar novo treino;
+  else (não)
+    :409 — só suspende ativo;
+  endif
+}
+
+partition "Reativar" {
+  if (Vínculo = suspended?) then (sim)
+    :POST /owner/members/{id}/reactivate;
+    |Sistema|
+    :UPDATE memberships\nstatus=active, suspension_reason=NULL;
+    |Aluno (efeito)|
+    :Registro de treino liberado;
+  else (não)
+    :409 — só reativa suspenso;
+  endif
+}
+
+stop
+
+@enduml

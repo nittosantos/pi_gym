@@ -1,0 +1,62 @@
+@startuml diagrama-classes-dominio
+title Diagrama de Classes — Domínio (espelho do banco)
+skinparam classAttributeIconSize 0
+
+class Usuario {
+  +id : int
+  +email : string
+  +passwordHash : string
+  +papel : enum {owner, member}
+  +statusConta : enum {active, pending}
+  +criadoEm : DateTime
+}
+
+class Academia {
+  +id : int
+  +nome : string
+}
+
+class AssociacaoAcademia {
+  +id : int
+  +statusVinculo : enum {pending, active, suspended}
+  +motivoSuspensao : string {opcional}
+  +criadoEm : DateTime
+}
+
+class Treino {
+  +id : int
+  +titulo : string {opcional}
+  +conteudo : string
+  +criadoEm : DateTime
+  +atualizadoEm : DateTime
+}
+
+class RegistroPresenca {
+  +id : int
+  +entrada : DateTime
+  +saida : DateTime {opcional}
+}
+
+Usuario "1" -- "0..1" Academia : gerencia >
+note on link
+  Dono (owner_user_id)
+  Um dono → uma academia
+end note
+
+Usuario "1" -- "*" AssociacaoAcademia : possui >
+Academia "1" -- "*" AssociacaoAcademia : possui >
+note on link
+  UNIQUE (gym_id, user_id)
+end note
+
+Academia "1" -- "*" Treino : contém >
+Usuario "1" -- "*" Treino : destinadoA >
+note on link
+  member_user_id
+end note
+
+Academia "1" -- "*" RegistroPresenca : registra >
+Usuario "1" -- "*" RegistroPresenca : realiza >
+Treino "0..1" -- "*" RegistroPresenca : vinculadoA >
+
+@enduml

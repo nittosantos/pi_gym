@@ -1,0 +1,44 @@
+@startuml bpmn-cadastro-aprovacao
+title BP-01 — Cadastro e aprovação de aluno
+skinparam activityShape roundBox
+skinparam partition {
+  BackgroundColor #F8F9FA
+  BorderColor #495057
+}
+
+|Visitante|
+start
+:Preencher formulário de cadastro\n(e-mail, senha, academia);
+:POST /api/auth/register;
+
+|Sistema (API + BD)|
+if (E-mail já cadastrado?) then (sim)
+  :Retornar erro 409;
+  stop
+else (não)
+  :INSERT users (status=pending);
+  :INSERT memberships (status=pending);
+  :Retornar 201;
+endif
+
+|Dono da academia|
+:Login no painel;
+:Listar alunos (members);
+if (Vínculo = pending?) then (sim)
+  :POST /owner/members/{id}/approve;
+  |Sistema (API + BD)|
+  :CALL sp_approve_member(gym_id, user_id);
+  note right
+    Ativa membership + users.status
+    Limpa suspension_reason se houver
+  end note
+  :Retornar 200;
+else (não)
+  :Não aprovar\n(use Reativar se suspenso);
+endif
+
+|Aluno|
+:Pode fazer login e usar o portal;
+stop
+
+@enduml

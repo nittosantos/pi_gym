@@ -1,0 +1,46 @@
+@startuml bpmn-registro-treino
+title BP-02 — Registro de treino do dia (aluno)
+skinparam activityShape roundBox
+
+|Aluno|
+start
+:Login no painel do aluno;
+:Selecionar treino, horário entrada e saída;
+:POST /api/member/training-records;
+
+|Sistema (API)|
+if (Sessão válida?) then (não)
+  :401 Não autenticado;
+  stop
+endif
+if (Vínculo = active?) then (não — suspenso)
+  :403 Modo consulta\n(só leitura);
+  stop
+endif
+if (Data = hoje\nAmerica/Sao_Paulo?) then (não)
+  :422 Só dia de hoje;
+  stop
+endif
+if (Saída >= entrada?) then (não)
+  :422 Horário inválido;
+  stop
+endif
+if (Treino pertence ao aluno?) then (não)
+  :422 Treino inválido;
+  stop
+endif
+
+|PostgreSQL|
+:INSERT INTO checkins;
+if (Trigger checkins_validate_times\n+ CHECK chk_checkins_times_valid) then (falha)
+  :ROLLBACK / erro;
+  stop
+else (ok)
+  :Registro persistido;
+endif
+
+|Aluno|
+:Histórico atualizado no dashboard;
+stop
+
+@enduml

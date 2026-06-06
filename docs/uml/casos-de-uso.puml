@@ -1,0 +1,75 @@
+@startuml casos-de-uso
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Visitante" as V
+actor "Aluno" as A
+actor "Dono da\nacademia" as D
+
+rectangle "Portal Academia Ge Ribeiro\n(front + API)" as SYS {
+
+  package "Autenticação e cadastro" {
+    usecase "UC-A01\nRegistrar-se como aluno" as UC_A01
+    usecase "UC-A02\nAutenticar-se (login)" as UC_A02
+    usecase "UC-A03\nEncerrar sessão" as UC_A03
+    usecase "UC-A04\nConsultar sessão (/auth/me)" as UC_A04
+    usecase "UC-A05\nListar academias (cadastro)" as UC_A05
+  }
+
+  package "Painel do dono" {
+    usecase "UC-O01\nListar alunos" as UC_O01
+    usecase "UC-O02\nAprovar cadastro" as UC_O02
+    usecase "UC-O03\nSuspender aluno" as UC_O03
+    usecase "UC-O04\nReativar aluno" as UC_O04
+    usecase "UC-O05\nGerenciar treinos (CRUD)" as UC_O05
+    usecase "UC-O06\nConsultar check-ins" as UC_O06
+  }
+
+  package "Painel do aluno" {
+    usecase "UC-M01\nConsultar treinos prescritos" as UC_M01
+    usecase "UC-M02\nConsultar histórico" as UC_M02
+    usecase "UC-M03\nRegistrar treino do dia" as UC_M03
+  }
+}
+
+V --> UC_A01
+V --> UC_A05
+V --> UC_A02
+
+A --> UC_A02
+A --> UC_A03
+A --> UC_A04
+A --> UC_M01
+A --> UC_M02
+A --> UC_M03
+
+D --> UC_A02
+D --> UC_A03
+D --> UC_A04
+D --> UC_O01
+D --> UC_O02
+D --> UC_O03
+D --> UC_O04
+D --> UC_O05
+D --> UC_O06
+
+UC_A01 ..> UC_A05 : <<include>>
+UC_M03 ..> UC_M01 : <<include>>\n(seleciona treino)
+
+note right of UC_O02
+  Somente vínculo pending.
+  Usa procedure sp_approve_member.
+end note
+
+note right of UC_O03
+  Vínculo → suspended.
+  Aluno entra em modo consulta.
+end note
+
+note bottom of UC_M03
+  Somente vínculo active.
+  Entrada + saída no dia de hoje (Brasília).
+end note
+
+@enduml

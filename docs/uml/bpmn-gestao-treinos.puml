@@ -1,0 +1,40 @@
+@startuml bpmn-gestao-treinos
+title BP-04 — Gestão de treinos pelo dono
+skinparam activityShape roundBox
+
+|Dono|
+start
+:Login painel owner;
+:Selecionar aluno;
+
+repeat
+  :Escolher ação;
+  if (Ação?) then (Criar)
+    :POST /owner/workouts\nmember_user_id, title, content;
+  elseif (Listar) then
+    :GET /owner/workouts?member_id=;
+  elseif (Editar) then
+    :PATCH /owner/workouts/{id};
+  else (Excluir)
+    :DELETE /owner/workouts/{id};
+  endif
+
+  |Sistema|
+  :Auth::requireOwner();
+  :Validar aluno pertence à academia;
+  :Operação em workouts;
+
+  |PostgreSQL|
+  if (UPDATE?) then (sim)
+    :Trigger workouts_touch_updated_at\natualiza updated_at;
+  endif
+
+  |Dono|
+  :Atualizar lista na tela;
+
+repeat while (Continuar gerenciando?) is (sim)
+->não;
+
+stop
+
+@enduml
